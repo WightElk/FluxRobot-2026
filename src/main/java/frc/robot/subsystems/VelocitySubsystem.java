@@ -50,7 +50,8 @@ public class VelocitySubsystem extends SubsystemBase {
 
     // private final RelativeEncoder upEncoder;
 
-    private double velocityRPM = DefaultVelocityRPM;
+    private double velocityRPM = 0;
+    private double setRPM = DefaultVelocityRPM;
     private double velocity = 0;
 
     private final PIDCtrl pidCtrl;
@@ -58,7 +59,7 @@ public class VelocitySubsystem extends SubsystemBase {
 
     private double timeDelta = Constants.TimePeriod;
 
-    public static final double DefaultVelocityRPM = 0.0;
+    public static final double DefaultVelocityRPM = 500.0;
     public static final double MaxMotorRPM = 6000;
 
         // configs.Slot0.kS = kS;//0.01; 
@@ -71,6 +72,7 @@ public class VelocitySubsystem extends SubsystemBase {
     public static final double DefaultKS = 0.0; // To account for friction, add 0.1 V of static feedforward
     public static final double DefaultMaxOutput = 1.0;
     public static final double DefaultMinOutput = -1.0;
+    public static final double DeltaRPM = 10;
 
     // PID coefficients
     public double kP = DefaultKP;
@@ -83,8 +85,7 @@ public class VelocitySubsystem extends SubsystemBase {
     public double kMaxOutput = DefaultMaxOutput;
     public double kMinOutput = DefaultMinOutput;
 
-    public double posDelta = ShooterConstants.PositionDelta;
-    public double rpmDelta = ShooterConstants.RPMDelta;
+    public double rpmDelta = DeltaRPM;
 
 
     private int execCounter = 0;
@@ -127,6 +128,7 @@ public class VelocitySubsystem extends SubsystemBase {
             velocity = vel;
         }
         atSpeed = Math.abs(vel - velocityRPM) <= rpmDelta;
+        System.out.println("RPM: " + velocityRPM + " / " + vel);
     }
 
     public boolean atSetPoint() {
@@ -155,10 +157,15 @@ public class VelocitySubsystem extends SubsystemBase {
     public void run() {
         // speed = -speed;
         // double rps = speed  * Constants.ShooterConstants.MaxMotorRPS;
-        motor.setControl(velocityVoltage.withVelocity(velocityRPM / 60.0));
+        if (setRPM != velocityRPM)
+        {
+            velocityRPM = setRPM;
+            motor.setControl(velocityVoltage.withVelocity(- velocityRPM / 60.0));
+            System.out.println("setControl");
+        }
 //        .withFeedForward(feedforward))
-        // double v = motor.getVelocity().getValue().magnitude();
-        // System.out.println("Speed: " + speed + " / " + rps + " / " + v);
+        double v = motor.getVelocity().getValue().magnitude();
+        System.out.println("Speed: " + velocityRPM + " / " + v);
     }
 
     public void setSpeed(double speed) {
@@ -175,7 +182,7 @@ public class VelocitySubsystem extends SubsystemBase {
     public void stop() {
         motor.setControl(brake);
         if (follower != null)
-            motor.setControl(brake);
+            follower.setControl(brake);
     }
 
     public double getVelocity()
@@ -232,6 +239,7 @@ public class VelocitySubsystem extends SubsystemBase {
     public void putParams() {
         String prefix = name + "/";
         SmartDashboard.putNumber(prefix + "Set RPM", velocityRPM);
+        SmartDashboard.putNumber(prefix + "RPM", velocity);
 
         SmartDashboard.putNumber(prefix + "kP", kP);
         SmartDashboard.putNumber(prefix + "kD", kD);
@@ -252,20 +260,20 @@ public class VelocitySubsystem extends SubsystemBase {
         kI = SmartDashboard.getNumber(prefix + "kI", DefaultKI);
         kV = SmartDashboard.getNumber(prefix + "kV", DefaultKV);
         kS = SmartDashboard.getNumber(prefix + "kS", DefaultKS);
-        kMaxOutput = SmartDashboard.getNumber(prefix + "MaxOutput", ShooterConstants.ControlOutputMax);
-        kMinOutput = SmartDashboard.getNumber(prefix + "MinOutput", ShooterConstants.ControlOutputMin);
-        rpmDelta = SmartDashboard.getNumber(prefix + "RpmDelta", ShooterConstants.RPMDelta);
+        kMaxOutput = SmartDashboard.getNumber(prefix + "MaxOutput", kMaxOutput);
+        kMinOutput = SmartDashboard.getNumber(prefix + "MinOutput", kMinOutput);
+        rpmDelta = SmartDashboard.getNumber(prefix + "RpmDelta", DeltaRPM);
 
         setConfig();
 
-        double vel = SmartDashboard.getNumber(prefix + "Set RPM Up", ShooterConstants.SpeedUp);
-        if (vel != velocityRPM)
+        double vel = SmartDashboard.getNumber(prefix + "Set RPM", DefaultVelocityRPM);
+        if (vel != setRPM)
         {
-            velocityRPM = vel;
-            if (velocityRPM == 0)
-                stop();
-            else
-                run();
+            setRPM = vel;
+            // if (velocityRPM == 0)
+            //     stop();
+            // else
+            //     run();
         }
 
         //TODOTODO!!!

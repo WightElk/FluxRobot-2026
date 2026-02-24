@@ -65,11 +65,12 @@ public class FuelRobotContainer extends RobotContainer {
     //autoDriveCommand = new DriveToPoseCommand(drivetrain, goalPoseSupplier, poseProvider, true);
   
     configureBindings();
+    shooter.putParams();
   }
 
   @Override
   protected void configureBindings() {
-    super.configureBindings();
+    //super.configureBindings();
 
 //    SmartDashboard.putBoolean("Use 2 controllers", OperatorConstants.UseTwoControllers);
 
