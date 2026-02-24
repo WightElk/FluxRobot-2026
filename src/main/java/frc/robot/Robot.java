@@ -4,7 +4,9 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.TimedRobot;  
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
@@ -23,9 +25,13 @@ public class Robot extends TimedRobot {
    * initialization code.
    */
   public Robot() {
+    // RobotController comments are set in RoboRIO Web UI
+    String comments = RobotController.getComments();
+    SmartDashboard.putString("Robot", comments);
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
-    m_robotContainer = new RobotContainer();
+    m_robotContainer = comments.contains("AlgaeRobot") ? new AlgaeRobotContainer() :
+      comments.contains("CoralRobot") ? new CoralRobotContainer() : new FuelRobotContainer();
   }
 
   /**
@@ -51,7 +57,7 @@ public class Robot extends TimedRobot {
   @Override
   public void disabledPeriodic() {}
 
-  /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
+  /** This autonomous runs the autonomous command selected by your {@link CoralRobotContainer} class. */
   @Override
   public void autonomousInit() {
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
