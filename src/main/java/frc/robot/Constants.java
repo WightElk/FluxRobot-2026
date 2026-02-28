@@ -33,8 +33,11 @@ import edu.wpi.first.wpilibj2.command.Command;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
+  public static final int Forward = 0;
+  public static final int Backward = 0;
 
-  public static final String fieldLayoutFile = "2025-reefscape-andymark.json";
+  public static final String fieldLayoutFile = "2026-rebuilt-andymark.json";//2026-rebuilt-welded.json
+  //"2025-reefscape-andymark.json";
 
   public static final double robotLength = 34;
 

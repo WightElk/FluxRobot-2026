@@ -10,6 +10,8 @@ import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.NeutralOut;
+import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -36,43 +38,42 @@ import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants;
 import frc.robot.PIDCtrl;
 
-public class VelocitySubsystem extends SubsystemBase {
+public class PositionSubsystem extends SubsystemBase {
     private final String name;
     private final TalonFX motor;
     private final TalonFX follower;
     private final TalonFXConfiguration configs;
 
-    private final VelocityVoltage velocityVoltage = new VelocityVoltage(0).withSlot(0);
+    private final PositionVoltage positionVoltage = new PositionVoltage(0).withSlot(0);
     /* Start at velocity 0, use slot 1 */
-    private final VelocityTorqueCurrentFOC velocityTorque = new VelocityTorqueCurrentFOC(0).withSlot(1);
+    private final PositionTorqueCurrentFOC positionTorque = new PositionTorqueCurrentFOC(0).withSlot(1);
     /* Keep a neutral out so we can disable the motor */
     private final NeutralOut brake = new NeutralOut();
 
     // private final RelativeEncoder upEncoder;
 
-    private double velocityRPM = 0;
-    private double setRPM = DefaultVelocityRPM;
-    private double velocity = 0;
+    private double setPos = DefaultPosition;
+    private double position = 0;
 
     private final PIDCtrl pidCtrl;
     private final PIDController pidController;
 
     private double timeDelta = Constants.TimePeriod;
 
-    public static final double DefaultVelocityRPM = 500.0;
+    public static final double DefaultPosition = 100.0;
     public static final double MaxMotorRPM = 6000;
 
-        // configs.Slot0.kS = kS;//0.01; 
-        // configs.Slot0.kV = kV;//0.12;
-        // configs.Slot0.kP = kP;//0.11; 
-    public static final double DefaultKP = 0.11;  // An error of 1 rotation per second results in 0.11 V output
-    public static final double DefaultKD = 0.0;
-    public static final double DefaultKI = 0.0;
+        // configs.Slot0.kP = kS;//2.4; 
+        // configs.Slot0.kI = kV;//0.0;
+        // configs.Slot0.kD = kP;//0.1; 
+    public static final double DefaultKP = 2.4;  // An error of 1 rotation results in 2.4 V output
+    public static final double DefaultKD = 0.1;  // A velocity of 1 rps results in 0.1 V output
+    public static final double DefaultKI = 0.0; // No output for integrated error
     public static final double DefaultKV = 0.0; // Kraken X60 is a 500 kV motor, 500 rpm per V = 8.333 rps per V, 1/8.33 = 0.12 volts / rotation per second
     public static final double DefaultKS = 0.0; // To account for friction, add 0.1 V of static feedforward
     public static final double DefaultMaxOutput = 1.0;
     public static final double DefaultMinOutput = -1.0;
-    public static final double DeltaRPM = 10;
+    public static final double DeltaPos = 10;
 
     // PID coefficients
     public double kP = DefaultKP;
@@ -85,19 +86,19 @@ public class VelocitySubsystem extends SubsystemBase {
     public double kMaxOutput = DefaultMaxOutput;
     public double kMinOutput = DefaultMinOutput;
 
-    public double rpmDelta = DeltaRPM;
+    public double posDelta = DeltaPos;
 
 
     private int execCounter = 0;
     private double time = 0;
     private double controlValueUp = 0;
     private double controlValueDown = 0;
-    private boolean atSpeed = false;
+    private boolean atPosition = false;
 
     /**
      * This subsytem that controls the roller.
      */
-    public VelocitySubsystem(CANBus canBus, String name, int motorId, int followerId) {
+    public PositionSubsystem(CANBus canBus, String name, int motorId, int followerId) {
         this.name = name;
         motor = new TalonFX(motorId, canBus);
         follower = followerId > 0 ? new TalonFX(followerId, canBus) : null;
@@ -120,32 +121,31 @@ public class VelocitySubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        double vel = 60 * getVelocity();
-        if (vel != velocity)
+        double pos = getPosition();
+        if (pos != position)
         {
             String prefix = name + "/";
-            SmartDashboard.putNumber(prefix + "RPM", vel);
-            velocity = vel;
+            SmartDashboard.putNumber(prefix + "Pos", pos);
+            position = pos;
         }
-        atSpeed = Math.abs(vel - velocityRPM) <= rpmDelta;
-        System.out.println("RPM: " + velocityRPM + " / " + vel);
+        atPosition = Math.abs(pos - position) <= posDelta;
+        System.out.println("Pos: " + position + " / " + pos);
     }
 
     public boolean atSetPoint() {
-        return atSpeed;
+        return atPosition;
     }
 
     public void init(double rpm) {
-        System.out.println(name + " Initializing");
+        System.out.println("Shooter Initializing");
         getParams();
 
-        velocityRPM = rpm;
         execCounter = 0;
         
         time = 0;
         controlValueUp = 0;
         controlValueDown = 0;
-        atSpeed = false;
+        atPosition = false;
 
         // upEncoder.setPosition(0);
 
@@ -155,33 +155,28 @@ public class VelocitySubsystem extends SubsystemBase {
     }
 
     public void run() {
-        run(Constants.Forward);
-    }
-
-    public void run(int direction) {
         // speed = -speed;
         // double rps = speed  * Constants.ShooterConstants.MaxMotorRPS;
-        double setRpm = direction == Constants.Backward ? -setRPM : setRPM;
-        if (setRpm != velocityRPM)
+        if (setPos != position)
         {
-            velocityRPM = setRpm;
-            motor.setControl(velocityVoltage.withVelocity(- velocityRPM / 60.0));
+            position = setPos;
+            motor.setControl(positionVoltage.withPosition(- position / 60.0));
             System.out.println("setControl");
         }
 //        .withFeedForward(feedforward))
-        double v = motor.getVelocity().getValue().magnitude();
-        System.out.println("Speed: " + velocityRPM + " / " + v);
+        // double v = motor.getVelocity().getValue().magnitude();
+        // System.out.println("Speed: " + velocityRPM + " / " + v);
     }
 
-    public void setSpeed(double speed) {
-        speed = -speed;
-        double rps = speed  * Constants.ShooterConstants.MaxMotorRPS;
+    public void setPosition(double pos) {
+//        pos = -pos;
+        double rps = pos  * Constants.ShooterConstants.MaxMotorRPS;
 
-        motor.setControl(velocityVoltage.withVelocity(speed * Constants.ShooterConstants.MaxMotorRPS));
+        motor.setControl(positionVoltage.withPosition(pos * Constants.ShooterConstants.MaxMotorRPS));
 //        .withFeedForward(feedforward))
 //        motor.setControl(velocityTorque.withVelocity(speed * Constants.MaxMotorRPS));
-        double v = motor.getVelocity().getValue().magnitude();
-        System.out.println("Speed: " + speed + " / " + rps + " / " + v);
+        double p = motor.getPosition().getValue().in(Rotations);
+        System.out.println("Position: " + pos + " / " + setPos  + " / " + p);
     }
 
     public void stop() {
@@ -190,13 +185,13 @@ public class VelocitySubsystem extends SubsystemBase {
             follower.setControl(brake);
     }
 
-    public double getVelocity()
+    public double getPosition()
     {
-        return motor.getVelocity().getValue().magnitude();
+        return motor.getPosition().getValue().in(Rotations);
     }
 
     public void runDown(double target) {
-        // double velUp = upEncoder.getVelocity();
+        // double velUp = upEncoder    .getVelocity();
         // double velDown = downEncoder.getVelocity();
 //        upShooterMotor.set(target);
 //        downShooterMotor.set(-target);
@@ -207,8 +202,8 @@ public class VelocitySubsystem extends SubsystemBase {
     public void setConfig()
     {
         /* Voltage-based velocity requires a velocity feed forward to account for the back-emf of the motor */
-        configs.Slot0.kS = kS;//0.01; // To account for friction, add 0.1 V of static feedforward
-        configs.Slot0.kV = kV;//0.12; // Kraken X60 is a 500 kV motor, 500 rpm per V = 8.333 rps per V, 1/8.33 = 0.12 volts / rotation per second
+        // configs.Slot0.kS = kS;//0.         01; // To account for friction, add 0.1 V of static feedforward
+        // configs.Slot0.kV = kV;//0.12; // Kraken X60 is a 500 kV motor, 500 rpm per V = 8.333 rps per V, 1/8.33 = 0.12 volts / rotation per second
         configs.Slot0.kP = kP;//0.11; // An error of 1 rotation per second results in 0.11 V output
         configs.Slot0.kI = kI; // No output for integrated error
         configs.Slot0.kD = kD; // No output for error derivative
@@ -217,9 +212,10 @@ public class VelocitySubsystem extends SubsystemBase {
 
         /* Torque-based velocity does not require a velocity feed forward, as torque will accelerate the rotor up to the desired velocity by itself */
         // configs.Slot1.kS = 2.5; // To account for friction, add 2.5 A of static feedforward
-        // configs.Slot1.kP = 5; // An error of 1 rotation per second results in 5 A output
+
+        // configs.Slot1.kP = 60; // An error of 1 rotation per second results in 5 A output
         // configs.Slot1.kI = 0; // No output for integrated error
-        // configs.Slot1.kD = 0; // No output for error derivative
+        // configs.Slot1.kD = 6; // No output for error derivative
         // // Peak output of 40 A
         // configs.TorqueCurrent.withPeakForwardTorqueCurrent(Amps.of(40)).withPeakReverseTorqueCurrent(Amps.of(-40));
 
@@ -239,13 +235,16 @@ public class VelocitySubsystem extends SubsystemBase {
         }
         if (follower != null)
             follower.setControl(new Follower(motor.getDeviceID(), MotorAlignmentValue.Opposed));
+
+        motor.setPosition(0);
+
     }
 
     public void putParams() {
         String prefix = name + "/";
 
-        SmartDashboard.setPersistent(prefix + "Set RPM");
-        SmartDashboard.setPersistent(prefix + "RPM");
+        SmartDashboard.setPersistent(prefix + "Set Pos");
+        SmartDashboard.setPersistent(prefix + "Pos");
         SmartDashboard.setPersistent(prefix + "kP");
         SmartDashboard.setPersistent(prefix + "kD");
         SmartDashboard.setPersistent(prefix + "kI");
@@ -253,10 +252,10 @@ public class VelocitySubsystem extends SubsystemBase {
         SmartDashboard.setPersistent(prefix + "kS");
         SmartDashboard.setPersistent(prefix + "MaxOutput");
         SmartDashboard.setPersistent(prefix + "MinOutput");
-        SmartDashboard.setPersistent(prefix + "RpmDelta");
+        SmartDashboard.setPersistent(prefix + "PosDelta");
 
-        SmartDashboard.putNumber(prefix + "Set RPM", velocityRPM);
-        SmartDashboard.putNumber(prefix + "RPM", velocity);
+        SmartDashboard.putNumber(prefix + "Set Pos", setPos);
+        SmartDashboard.putNumber(prefix + "Pos", position);
 
         SmartDashboard.putNumber(prefix + "kP", kP);
         SmartDashboard.putNumber(prefix + "kD", kD);
@@ -266,7 +265,7 @@ public class VelocitySubsystem extends SubsystemBase {
         SmartDashboard.putNumber(prefix + "MaxOutput", kMaxOutput);
         SmartDashboard.putNumber(prefix + "MinOutput", kMinOutput);
 
-        SmartDashboard.putNumber(prefix + "RpmDelta", rpmDelta);
+        SmartDashboard.putNumber(prefix + "PosDelta", posDelta);
     }
 
     public void getParams() {
@@ -279,14 +278,14 @@ public class VelocitySubsystem extends SubsystemBase {
         kS = SmartDashboard.getNumber(prefix + "kS", DefaultKS);
         kMaxOutput = SmartDashboard.getNumber(prefix + "MaxOutput", kMaxOutput);
         kMinOutput = SmartDashboard.getNumber(prefix + "MinOutput", kMinOutput);
-        rpmDelta = SmartDashboard.getNumber(prefix + "RpmDelta", DeltaRPM);
+        posDelta = SmartDashboard.getNumber(prefix + "posDelta", DeltaPos);
 
         setConfig();
 
-        double vel = SmartDashboard.getNumber(prefix + "Set RPM", DefaultVelocityRPM);
-        if (vel != setRPM)
+        double pos = SmartDashboard.getNumber(prefix + "Set Pos", DefaultPosition);
+        if (pos != setPos)
         {
-            setRPM = vel;
+            setPos = pos;
             // if (velocityRPM == 0)
             //     stop();
             // else
