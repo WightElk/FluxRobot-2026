@@ -147,8 +147,8 @@ public final class Constants {
     public static final double ControlOutputMax = 1.0;
     public static final double ControlOutputMin = 0.1;
 
-    public static final double PositionDelta = 0.01;  // Relative
-    public static final double RPMDelta = 0.1;  // Absolute
+    public static final double PositionDelta = 100;  // Relative
+    public static final double RPMDelta = 100;  // Absolute
   }
 
     public static final class ElevatorConstants {

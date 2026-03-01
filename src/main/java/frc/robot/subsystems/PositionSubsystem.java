@@ -52,8 +52,13 @@ public class PositionSubsystem extends SubsystemBase {
 
     // private final RelativeEncoder upEncoder;
 
-    private double setPos = DefaultPosition;
+    private double targetPosition = DefaultPosition;
     private double position = 0;
+    private boolean running = false;
+    private boolean atTarget = false;
+    private boolean targetPositionChanged = false;
+    private double velocityRPM = 0;
+    private double velocity = 0;
 
     private final PIDCtrl pidCtrl;
     private final PIDController pidController;
@@ -73,7 +78,9 @@ public class PositionSubsystem extends SubsystemBase {
     public static final double DefaultKS = 0.0; // To account for friction, add 0.1 V of static feedforward
     public static final double DefaultMaxOutput = 1.0;
     public static final double DefaultMinOutput = -1.0;
-    public static final double DeltaPos = 10;
+    public static final double DeltaPos = 50;
+
+    public static final int JogStep = 100;
 
     // PID coefficients
     public double kP = DefaultKP;
@@ -87,6 +94,7 @@ public class PositionSubsystem extends SubsystemBase {
     public double kMinOutput = DefaultMinOutput;
 
     public double posDelta = DeltaPos;
+    private int jogStep = JogStep;
 
 
     private int execCounter = 0;
@@ -121,6 +129,15 @@ public class PositionSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        if (running && targetPositionChanged)
+        {
+            double pos = targetPosition;
+            motor.setControl(positionVoltage.withPosition(pos));
+            if (follower != null)
+                follower.setControl(positionVoltage.withPosition(pos));
+            System.out.println("setControl-periodic");
+        }
+
         double pos = getPosition();
         if (pos != position)
         {
@@ -128,7 +145,7 @@ public class PositionSubsystem extends SubsystemBase {
             SmartDashboard.putNumber(prefix + "Pos", pos);
             position = pos;
         }
-        atPosition = Math.abs(pos - position) <= posDelta;
+        atPosition = Math.abs(pos - targetPosition) <= posDelta;
         //System.out.println("Pos: " + position + " / " + pos);
     }
 
@@ -137,15 +154,16 @@ public class PositionSubsystem extends SubsystemBase {
     }
 
     public void init(double rpm) {
-        System.out.println("Shooter Initializing");
+        System.out.println(name + " Initializing");
         getParams();
 
         execCounter = 0;
-        
         time = 0;
         controlValueUp = 0;
         controlValueDown = 0;
-        atPosition = false;
+        running = false;
+        targetPositionChanged = false;
+        atTarget = false;
 
         // upEncoder.setPosition(0);
 
@@ -154,23 +172,42 @@ public class PositionSubsystem extends SubsystemBase {
         // m_pidController.setSetpoint(10);
     }
 
+    public void reset()
+    {
+        System.out.println(name + " Reset");
+
+        execCounter = 0;
+        time = 0;
+        controlValueUp = 0;
+        controlValueDown = 0;
+        running = false;
+        targetPositionChanged = false;
+        atTarget = false;
+    }
+
     public void jogUp()
     {
-
+        double pos = getPosition();
+        pos += jogStep;
+        targetPosition = pos;
+        motor.setControl(positionVoltage.withPosition(pos));
     }
     
     public void jogDown()
     {
-
+        double pos = getPosition();
+        pos -= jogStep;
+        targetPosition = pos;
+        motor.setControl(positionVoltage.withPosition(pos));
     }
     
     public void run() {
         // speed = -speed;
         // double rps = speed  * Constants.ShooterConstants.MaxMotorRPS;
-        if (setPos != position)
+        if (targetPosition != position)
         {
-            position = setPos;
-            motor.setControl(positionVoltage.withPosition(- position / 60.0));
+            position = targetPosition;
+            motor.setControl(positionVoltage.withPosition(- position));
             System.out.println("setControl");
         }
 //        .withFeedForward(feedforward))
@@ -182,17 +219,20 @@ public class PositionSubsystem extends SubsystemBase {
 //        pos = -pos;
         double rps = pos  * Constants.ShooterConstants.MaxMotorRPS;
 
-        motor.setControl(positionVoltage.withPosition(pos * Constants.ShooterConstants.MaxMotorRPS));
+        motor.setControl(positionVoltage.withPosition(pos));
 //        .withFeedForward(feedforward))
-//        motor.setControl(velocityTorque.withVelocity(speed * Constants.MaxMotorRPS));
+        if (follower != null)
+            follower.setControl(positionVoltage.withPosition(pos));
+
         double p = motor.getPosition().getValue().in(Rotations);
-        System.out.println("Position: " + pos + " / " + setPos  + " / " + p);
+        System.out.println("Position: " + pos + " / " + targetPosition  + " / " + p);
     }
 
     public void stop() {
         motor.setControl(brake);
         if (follower != null)
             follower.setControl(brake);
+        reset();
     }
 
     public double getPosition()
@@ -253,7 +293,6 @@ public class PositionSubsystem extends SubsystemBase {
     public void putParams() {
         String prefix = name + "/";
 
-        SmartDashboard.setPersistent(prefix + "Set Pos");
         SmartDashboard.setPersistent(prefix + "Pos");
         SmartDashboard.setPersistent(prefix + "kP");
         SmartDashboard.setPersistent(prefix + "kD");
@@ -264,7 +303,7 @@ public class PositionSubsystem extends SubsystemBase {
         SmartDashboard.setPersistent(prefix + "MinOutput");
         SmartDashboard.setPersistent(prefix + "PosDelta");
 
-        SmartDashboard.putNumber(prefix + "Set Pos", setPos);
+        SmartDashboard.putNumber(prefix + "Target Pos", targetPosition);
         SmartDashboard.putNumber(prefix + "Pos", position);
 
         SmartDashboard.putNumber(prefix + "kP", kP);
@@ -292,132 +331,13 @@ public class PositionSubsystem extends SubsystemBase {
 
         setConfig();
 
-        double pos = SmartDashboard.getNumber(prefix + "Set Pos", DefaultPosition);
-        if (pos != setPos)
+        double pos = SmartDashboard.getNumber(prefix + "Target Pos", DefaultPosition);
+        if (pos != targetPosition)
         {
-            setPos = pos;
-            // if (velocityRPM == 0)
-            //     stop();
-            // else
-            //     run();
+            targetPosition = pos;
+            targetPositionChanged = true;
         }
-
-        //TODOTODO!!!
-        // if (velocityRPM < 50)
-        //     velocityRPM = 50;
 
         pidCtrl.pid(kP, kD, kI);
     }
 }
-
-/*
-    //TODO Param?
-    public void run(double target) {
-        ++execCounter;
-        int dtime = (int) (execCounter * 1000 * Constants.TimePeriod);
-
-        double t = Timer.getFPGATimestamp();
-        double dt = time > 0 ? t - time : 0;
-        time = t;
-
-//        downSetRPM = upSetRPM;
-        double velUp = upEncoder.getVelocity();
-        double velDown = downEncoder.getVelocity();
-
-        double pos = upEncoder.getPosition();
-        double pos1 = downEncoder.getPosition();
-        //double pos2 = downEncoderR.getPosition();
-        // double rpm = SmartDashboard.getNumber("RPM", 500);
-        // if (targetRPM != rpm)
-        //     targetRPM = rpm;
-        // if (targetRPM < 50)
-        //     targetRPM = 500;
-//        System.out.printf("VEL, %.2f, -, %.2f%n", velUp, velDown);
-
-        if (controlValueUp < controlOutputMin) {
-            controlValueUp = controlOutputMin;
-            controlValueDown = -controlOutputMin;
-            System.out.printf("VEL, %.2f, -, %.2f%n", velUp, velDown);
-
-            upShooterMotor.set(controlValueUp);
-            downShooterMotor.set(controlValueDown);
-            downShooterMotorR.set(-controlValueDown);
-            System.out.printf("Applied Output: %.3f, %.3f, %.4f %n", controlValueUp, controlValueDown, upShooterMotor.getAppliedOutput());
-            return;
-        }
-
-        double difUp = kV * upSetRPM + upPidCtrl.calculateDif(velUp, upSetRPM, dt);
-//        System.out.printf("calculateDif: %.3f, %.3f, %.2f, -, %.2f%n", velDown, downSetRPM, velUp, velDown);
-        double difDown = kV * (-downSetRPM) + downPidCtrl.calculateDif(-velDown, -downSetRPM, dt);
-
-        atSpeed = Math.abs(difUp / upSetRPM - 1) < posDelta && Math.abs(difDown / downSetRPM - 1) < posDelta;
-
-        controlValueUp += difUp / upSetRPM;
-        controlValueDown += difDown / downSetRPM;
-
-        double ctrlvalUp = controlValueUp;
-        double ctrlvalDown = controlValueDown;
-    
-        controlValueUp = PIDCtrl.limitSignedRange(controlValueUp, controlOutputMin, controlOutputMax);
-        controlValueDown = PIDCtrl.limitSignedRange(controlValueDown, -controlOutputMax, -controlOutputMin);
-
-//        upShooterMotor.setVoltage(ctrlSpeed);
-        upShooterMotor.set(controlValueUp);
-//        downShooterMotor.set(-controlValueUp);
-        downShooterMotor.set(controlValueDown);
-        downShooterMotorR.set(-controlValueDown);
-
-        double cur1 = upShooterMotor.getOutputCurrent();
-        double cur2 = downShooterMotor.getOutputCurrent();
-        double cur3 = downShooterMotorR.getOutputCurrent();
-
-        SmartDashboard.putNumber("Shooter RPM Up", velUp);
-        SmartDashboard.putNumber("Shooter RPM Down", velDown);
-        SmartDashboard.putNumber("Thrust", controlValueUp);
-
-        SmartDashboard.putNumber("CurrentUp", cur1);
-        SmartDashboard.putNumber("CurrentDown", cur2);
-
-//        System.out.printf("CUR, %.3f, %.3f, %.3f%n", cur1, cur2, cur3);
-
-        System.out.printf("SHT, %d, %.2f, -, %.2f, %.3f, -, %.4f, %.4f, %.4f, %.4f%n", dtime, 1000 * dt, pos, velUp, difUp, ctrlvalUp, controlValueUp, upShooterMotor.getAppliedOutput());
-        System.out.printf("SHT, %d, %.2f, -, %.2f, %.3f, -, %.4f, %.4f, %.4f, %.4f, %.4f%n", dtime, 1000 * dt, pos, velDown, difDown, ctrlvalDown, controlValueDown, downShooterMotor.getAppliedOutput(), downShooterMotorR.getAppliedOutput());
-    }
-
-    public void runShooter1(double speed) {
-        double setPoint = 50;
-
-        double ctrlSpeed = m_pidController.calculate(m_encoder.getPosition(), setPoint);
-//        m_pidController.setReference(rotations, CANSparkMax.ControlType.kPosition);
-        System.out.println("Pos/Vel: " + m_encoder.getPosition() + " - " + m_encoder.getVelocity());
-        System.out.println("PID1: " + ctrlSpeed);
-//            SmartDashboard.putNumber("Applied Output", upShooterMotor.getAppliedOutput());
-            //System.out.println("PID: " + m_pidController.calculate(m_encoder.getVelocity()));
-            //System.out.println("Encoder A: " + m_alternateEncoder.getPosition() + "-" + m_alternateEncoder.getVelocity());
-        //upShooterMotor.set(m_pidController.calculate(m_encoder.getPosition()));
-        double coeff = SmartDashboard.getNumber("Coeff", 1);
-        //ctrlSpeed *= coeff;
-//        System.out.println("Speed: " + speed);
-        double velUp = upEncoder.getVelocity();
-        double velDown = downEncoder.getVelocity();
-
-        if (controlValue == 0)
-            controlValue = speed;
-        double dif = pidCtrl.calculateDif(m_encoder.getPosition(), setPoint);
-        controlValue += dif;
-        System.out.println("PID Dif/Control: " + dif + " - " + controlValue);
-
-        double limited = PIDCtrl.limitRange(controlValue, 1.0);
-
-//        closedLoopCtrl.setReference(1000, ControlType.kVelocity);
-//        closedLoopCtrl.setReference(50, ControlType.kPosition);
-
-//        upShooterMotor.setVoltage(ctrlSpeed);
-        upShooterMotor.set(controlValue);
-//        upShooterMotor.setVoltage(controller.update(getState().getTargetAngle().getDegrees(), getCurrentAngle().getDegrees()));
-        SmartDashboard.putNumber("Shhot RPM Up", vel);
-        SmartDashboard.putNumber("Shhot RPM Up", vel);
-
-        System.out.println("Applied Output: " + upShooterMotor.getAppliedOutput());            
-    }
-*/

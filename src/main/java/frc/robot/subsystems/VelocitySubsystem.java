@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
+import static edu.wpi.first.util.ErrorMessages.requireNonNullParam;
 
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkMaxAlternateEncoder;
@@ -52,8 +53,11 @@ public class VelocitySubsystem extends SubsystemBase {
 
     // private final RelativeEncoder upEncoder;
 
+    private int direction = Constants.Forward;
+    private boolean running = false;
+    private boolean targetVelocityChanged = false;
     private double velocityRPM = 0;
-    private double setRPM = DefaultVelocityRPM;
+    private double targetVelocity = DefaultVelocityRPM;
     private double velocity = 0;
 
     private final PIDCtrl pidCtrl;
@@ -74,7 +78,7 @@ public class VelocitySubsystem extends SubsystemBase {
     public static final double DefaultKS = 0.0; // To account for friction, add 0.1 V of static feedforward
     public static final double DefaultMaxOutput = 1.0;
     public static final double DefaultMinOutput = -1.0;
-    public static final double DeltaRPM = 10;
+    public static final double DeltaRPM = 100;
 
     // PID coefficients
     public double kP = DefaultKP;
@@ -123,6 +127,16 @@ public class VelocitySubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        if (running && targetVelocityChanged)
+        {
+            double setRpm = direction == Constants.Backward ? -targetVelocity : targetVelocity;
+            setRpm = setRpm / 60.0;
+            motor.setControl(velocityVoltage.withVelocity(- velocityRPM / 60.0));
+            if (follower != null)
+                follower.setControl(velocityVoltage.withVelocity(- velocityRPM / 60.0));
+            System.out.println("setControl-periodic");
+        }
+
         double vel = 60 * getVelocity();
         if (vel != velocity)
         {
@@ -130,7 +144,8 @@ public class VelocitySubsystem extends SubsystemBase {
             SmartDashboard.putNumber(prefix + "RPM", vel);
             velocity = vel;
         }
-        atSpeed = Math.abs(vel - velocityRPM) <= rpmDelta;
+        double target = direction == Constants.Backward ? -targetVelocity : targetVelocity;
+        atSpeed = Math.abs(vel - target) <= rpmDelta;
         //System.out.println("RPM: " + velocityRPM + " / " + vel);
     }
 
@@ -148,6 +163,8 @@ public class VelocitySubsystem extends SubsystemBase {
         time = 0;
         controlValueUp = 0;
         controlValueDown = 0;
+        running = false;
+        targetVelocityChanged = false;
         atSpeed = false;
 
         // upEncoder.setPosition(0);
@@ -157,14 +174,28 @@ public class VelocitySubsystem extends SubsystemBase {
         // m_pidController.setSetpoint(10);
     }
 
+    public void reset()
+    {
+        System.out.println(name + " Reset");
+
+        execCounter = 0;
+        time = 0;
+        controlValueUp = 0;
+        controlValueDown = 0;
+        running = false;
+        targetVelocityChanged = false;
+        atSpeed = false;
+    }
+
     public void run() {
         run(Constants.Forward);
     }
 
     public void run(int direction) {
+        this.direction = direction;
         // speed = -speed;
         // double rps = speed  * Constants.ShooterConstants.MaxMotorRPS;
-        double setRpm = direction == Constants.Backward ? -setRPM : setRPM;
+        double setRpm = direction == Constants.Backward ? -targetVelocity : targetVelocity;
         if (setRpm != velocityRPM)
         {
             velocityRPM = setRpm;
@@ -179,6 +210,8 @@ public class VelocitySubsystem extends SubsystemBase {
     }
 
     public void setSpeed(double speed) {
+        targetVelocityChanged = true;
+
         speed = -speed;
         double rps = speed  * Constants.ShooterConstants.MaxMotorRPS;
 
@@ -195,6 +228,7 @@ public class VelocitySubsystem extends SubsystemBase {
         motor.setControl(brake);
         if (follower != null)
             follower.setControl(brake);
+        reset();
     }
 
     public double getVelocity()
@@ -311,9 +345,11 @@ public class VelocitySubsystem extends SubsystemBase {
         setConfig();
 
         double vel = SmartDashboard.getNumber(prefix + "Set RPM", DefaultVelocityRPM);
-        if (vel != setRPM)
+        if (vel != targetVelocity)
         {
-            setRPM = vel;
+            targetVelocity = vel;
+            targetVelocityChanged = true;
+
             // if (velocityRPM == 0)
             //     stop();
             // else
