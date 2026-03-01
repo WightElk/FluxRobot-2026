@@ -15,15 +15,16 @@ public final class RobotConfig {
     public final SwerveModuleConfig backRight;
 
     public static final double HalfSwerveOffset = 11.0;
+    public static final double FuelHalfSwerveOffset = 11.125;
     public static final boolean InvertLeftSide = false;
     public static final boolean InvertRightSide = true;
 
     public static final RobotConfig FuelRobot = new RobotConfig(
         "Drivetrain", "Mech", 20,
-        new SwerveModuleConfig(2, 1, 21, 0.120849609375, HalfSwerveOffset, HalfSwerveOffset, InvertLeftSide, false, false),
-        new SwerveModuleConfig(4, 3, 22, -0.291015625, HalfSwerveOffset, -HalfSwerveOffset, InvertRightSide, false, false),
-        new SwerveModuleConfig(6, 5, 23, -0.460693359375, -HalfSwerveOffset, HalfSwerveOffset, InvertLeftSide, false, false),
-        new SwerveModuleConfig(8, 7, 24, -0.034912109375, -HalfSwerveOffset, -HalfSwerveOffset, InvertRightSide, false, false));
+        new SwerveModuleConfig(2, 1, 21, 0.105224609375, FuelHalfSwerveOffset, FuelHalfSwerveOffset, InvertLeftSide, false, false),
+        new SwerveModuleConfig(4, 3, 22, -0.12060546875, FuelHalfSwerveOffset, -FuelHalfSwerveOffset, InvertRightSide, false, false),
+        new SwerveModuleConfig(6, 5, 23, -0.466796875, -FuelHalfSwerveOffset, FuelHalfSwerveOffset, InvertLeftSide, false, false),
+        new SwerveModuleConfig(8, 7, 24, -0.037109375, -FuelHalfSwerveOffset, -FuelHalfSwerveOffset, InvertRightSide, false, false));
 
     public static final RobotConfig CoralRobot = new RobotConfig(
         "CANdace", "rio", 24,

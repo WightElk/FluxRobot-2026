@@ -129,7 +129,7 @@ public class PositionSubsystem extends SubsystemBase {
             position = pos;
         }
         atPosition = Math.abs(pos - position) <= posDelta;
-        System.out.println("Pos: " + position + " / " + pos);
+        //System.out.println("Pos: " + position + " / " + pos);
     }
 
     public boolean atSetPoint() {
@@ -154,6 +154,16 @@ public class PositionSubsystem extends SubsystemBase {
         // m_pidController.setSetpoint(10);
     }
 
+    public void jogUp()
+    {
+
+    }
+    
+    public void jogDown()
+    {
+
+    }
+    
     public void run() {
         // speed = -speed;
         // double rps = speed  * Constants.ShooterConstants.MaxMotorRPS;

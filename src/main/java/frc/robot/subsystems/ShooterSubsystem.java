@@ -51,7 +51,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
     private final PIDCtrl upPidCtrl;
     private final PIDCtrl downPidCtrl;
-    private double upSetRPM = ShooterConstants.SpeedUp;
+    private double upSetRPM = ShooterConstants.Speed;
     private double downSetRPM = ShooterConstants.SpeedDown;
 
     private double timeDelta = Constants.TimePeriod;
@@ -323,7 +323,7 @@ public class ShooterSubsystem extends SubsystemBase {
 */        
     public void putParams() {
         SmartDashboard.putNumber("Set RPM Up", upSetRPM);
-        SmartDashboard.putNumber("Set RPM Down", downSetRPM);
+//        SmartDashboard.putNumber("Set RPM Down", downSetRPM);
 
         SmartDashboard.putNumber("kP_Sh", kP);
         SmartDashboard.putNumber("kD_Sh", kD);
@@ -336,8 +336,8 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     public void getParams() {
-        upSetRPM = SmartDashboard.getNumber("Set RPM Up", ShooterConstants.SpeedUp);
-        downSetRPM = SmartDashboard.getNumber("Set RPM Down", ShooterConstants.SpeedDown);
+        upSetRPM = SmartDashboard.getNumber("Set RPM Up", ShooterConstants.Speed);
+//        downSetRPM = SmartDashboard.getNumber("Set RPM Down", ShooterConstants.SpeedDown);
 
         kP = SmartDashboard.getNumber("kP_Sh", ShooterConstants.kP);
         kD = SmartDashboard.getNumber("kD_Sh", ShooterConstants.kD);

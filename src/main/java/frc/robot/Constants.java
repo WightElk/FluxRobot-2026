@@ -65,13 +65,13 @@ public final class Constants {
     public static final Pose2d Target_Tolerance = new Pose2d(0.04, 0.04, new Rotation2d(Math.toRadians(3)));
 
     /** Meters per Second */
-    public static final double maxSpeed = 5.5;
+    public static final double maxSpeed = 2;//5.5;
   }
 
   public static final class IntakeConstants {
     public static final int MotorId = 1;
     public static final int FollowerId = 2;
-    public static final double InSpeed = 1.0;
+    public static final double InSpeed = -1.8;
     public static final double OutSpeed = -0.2;
 
     public static final double MaxMotorRPS = 0.5 * MaxMotorRPM / 60.0;
@@ -88,8 +88,8 @@ public final class Constants {
 
     public static final double MaxMotorRPS = 0.5 * MaxMotorRPM / 60.0;
 
-    public static final double InSpeed = 1.0;//ROLLER_ALGAE_IN
-    public static final double BackwardSpeed = -0.1;//ROLLER_ALGAE_OUT
+    public static final double InSpeed = 1.5;//ROLLER_ALGAE_IN
+    public static final double BackwardSpeed = -1.5;//ROLLER_ALGAE_OUT
     public static final int ROLLER_MOTOR_CURRENT_LIMIT = 60;
     public static final double ROLLER_MOTOR_VOLTAGE_COMP = 10;
   }
@@ -119,7 +119,7 @@ public final class Constants {
     public static final int ShootStartTime = ShootWaitTime + ShootStartDelay;
     public static final int ShootFinishTime = ShootStartTime + ShootFinishDelay;
   
-    public static final double SpeedUp = 2500;
+    public static final double Speed = 100;
     public static final double SpeedDown = -2500;
 
     public static final double SpeedUp1 = 2110;

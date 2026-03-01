@@ -41,8 +41,10 @@ public class VelocitySubsystem extends SubsystemBase {
     private final TalonFX motor;
     private final TalonFX follower;
     private final TalonFXConfiguration configs;
+    private final TalonFXConfiguration configs1;
 
     private final VelocityVoltage velocityVoltage = new VelocityVoltage(0).withSlot(0);
+    private final VelocityVoltage velocityVoltage1 = new VelocityVoltage(0).withSlot(0);
     /* Start at velocity 0, use slot 1 */
     private final VelocityTorqueCurrentFOC velocityTorque = new VelocityTorqueCurrentFOC(0).withSlot(1);
     /* Keep a neutral out so we can disable the motor */
@@ -103,6 +105,7 @@ public class VelocitySubsystem extends SubsystemBase {
         follower = followerId > 0 ? new TalonFX(followerId, canBus) : null;
 
         configs = new TalonFXConfiguration();
+        configs1 = new TalonFXConfiguration();
 
         setConfig();
 
@@ -128,7 +131,7 @@ public class VelocitySubsystem extends SubsystemBase {
             velocity = vel;
         }
         atSpeed = Math.abs(vel - velocityRPM) <= rpmDelta;
-        System.out.println("RPM: " + velocityRPM + " / " + vel);
+        //System.out.println("RPM: " + velocityRPM + " / " + vel);
     }
 
     public boolean atSetPoint() {
@@ -166,6 +169,8 @@ public class VelocitySubsystem extends SubsystemBase {
         {
             velocityRPM = setRpm;
             motor.setControl(velocityVoltage.withVelocity(- velocityRPM / 60.0));
+            if (follower != null)
+                follower.setControl(velocityVoltage.withVelocity(- velocityRPM / 60.0));
             System.out.println("setControl");
         }
 //        .withFeedForward(feedforward))
@@ -177,11 +182,13 @@ public class VelocitySubsystem extends SubsystemBase {
         speed = -speed;
         double rps = speed  * Constants.ShooterConstants.MaxMotorRPS;
 
-        motor.setControl(velocityVoltage.withVelocity(speed * Constants.ShooterConstants.MaxMotorRPS));
+        motor.setControl(velocityVoltage.withVelocity(speed));
 //        .withFeedForward(feedforward))
 //        motor.setControl(velocityTorque.withVelocity(speed * Constants.MaxMotorRPS));
+        if (follower != null)
+            follower.setControl(velocityVoltage.withVelocity(speed));
         double v = motor.getVelocity().getValue().magnitude();
-        System.out.println("Speed: " + speed + " / " + rps + " / " + v);
+//        System.out.println("Speed: " + speed + " / " + rps + " / " + v);
     }
 
     public void stop() {
@@ -229,31 +236,40 @@ public class VelocitySubsystem extends SubsystemBase {
             status = motor.getConfigurator().apply(configs);
             if (status.isOK())
                 break;
-            // if (follower != null)
-            //     status = follower.getConfigurator().apply(configs);
+            //if (follower != null)
+              //  status = follower.getConfigurator().apply(configs);
+            //if (status.isOK())
+              //  break;
+        }
+        if (!status.isOK()) {
+            System.out.println("Could not apply configs, error code: " + status.toString());
+        }
+
+        configs1.Slot0.kS = kS;//0.01; // To account for friction, add 0.1 V of static feedforward
+        configs1.Slot0.kV = kV;//0.12; // Kraken X60 is a 500 kV motor, 500 rpm per V = 8.333 rps per V, 1/8.33 = 0.12 volts / rotation per second
+        configs1.Slot0.kP = kP;//0.11; // An error of 1 rotation per second results in 0.11 V output
+        configs1.Slot0.kI = kI; // No output for integrated error
+        configs1.Slot0.kD = kD; // No output for error derivative
+        // Peak output of 8 volts
+        configs1.Voltage.withPeakForwardVoltage(Volts.of(8)).withPeakReverseVoltage(Volts.of(-8));
+
+        status = StatusCode.StatusCodeNotInitialized;
+        for (int i = 0; i < 5; ++i) {
+            if (follower != null)
+                status = follower.getConfigurator().apply(configs1);
             if (status.isOK())
                 break;
         }
         if (!status.isOK()) {
             System.out.println("Could not apply configs, error code: " + status.toString());
         }
-        if (follower != null)
-            follower.setControl(new Follower(motor.getDeviceID(), MotorAlignmentValue.Opposed));
+
+        // if (follower != null)
+        //     follower.setControl(new Follower(motor.getDeviceID(), MotorAlignmentValue.Opposed));
     }
 
     public void putParams() {
         String prefix = name + "/";
-
-        SmartDashboard.setPersistent(prefix + "Set RPM");
-        SmartDashboard.setPersistent(prefix + "RPM");
-        SmartDashboard.setPersistent(prefix + "kP");
-        SmartDashboard.setPersistent(prefix + "kD");
-        SmartDashboard.setPersistent(prefix + "kI");
-        SmartDashboard.setPersistent(prefix + "kV");
-        SmartDashboard.setPersistent(prefix + "kS");
-        SmartDashboard.setPersistent(prefix + "MaxOutput");
-        SmartDashboard.setPersistent(prefix + "MinOutput");
-        SmartDashboard.setPersistent(prefix + "RpmDelta");
 
         SmartDashboard.putNumber(prefix + "Set RPM", velocityRPM);
         SmartDashboard.putNumber(prefix + "RPM", velocity);
@@ -267,6 +283,17 @@ public class VelocitySubsystem extends SubsystemBase {
         SmartDashboard.putNumber(prefix + "MinOutput", kMinOutput);
 
         SmartDashboard.putNumber(prefix + "RpmDelta", rpmDelta);
+
+        SmartDashboard.setPersistent(prefix + "Set RPM");
+        SmartDashboard.setPersistent(prefix + "RPM");
+        SmartDashboard.setPersistent(prefix + "kP");
+        SmartDashboard.setPersistent(prefix + "kD");
+        SmartDashboard.setPersistent(prefix + "kI");
+        SmartDashboard.setPersistent(prefix + "kV");
+        SmartDashboard.setPersistent(prefix + "kS");
+        SmartDashboard.setPersistent(prefix + "MaxOutput");
+        SmartDashboard.setPersistent(prefix + "MinOutput");
+        SmartDashboard.setPersistent(prefix + "RpmDelta");
     }
 
     public void getParams() {
