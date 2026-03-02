@@ -119,7 +119,7 @@ public final class Constants {
     public static final int ShootStartTime = ShootWaitTime + ShootStartDelay;
     public static final int ShootFinishTime = ShootStartTime + ShootFinishDelay;
   
-    public static final double Speed = 100;
+    public static final double Speed = 90;//100;
     public static final double SpeedDown = -2500;
 
     public static final double SpeedUp1 = 2110;

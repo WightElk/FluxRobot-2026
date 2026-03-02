@@ -133,7 +133,7 @@ public class VelocitySubsystem extends SubsystemBase {
             setRpm = setRpm / 60.0;
             motor.setControl(velocityVoltage.withVelocity(- velocityRPM / 60.0));
             if (follower != null)
-                follower.setControl(velocityVoltage.withVelocity(- velocityRPM / 60.0));
+                follower.setControl(velocityVoltage.withVelocity(velocityRPM / 60.0));
             System.out.println("setControl-periodic");
         }
 
@@ -201,7 +201,7 @@ public class VelocitySubsystem extends SubsystemBase {
             velocityRPM = setRpm;
             motor.setControl(velocityVoltage.withVelocity(- velocityRPM / 60.0));
             if (follower != null)
-                follower.setControl(velocityVoltage.withVelocity(- velocityRPM / 60.0));
+                follower.setControl(velocityVoltage.withVelocity(velocityRPM / 60.0));
             System.out.println("setControl");
         }
 //        .withFeedForward(feedforward))
@@ -219,7 +219,7 @@ public class VelocitySubsystem extends SubsystemBase {
 //        .withFeedForward(feedforward))
 //        motor.setControl(velocityTorque.withVelocity(speed * Constants.MaxMotorRPS));
         if (follower != null)
-            follower.setControl(velocityVoltage.withVelocity(speed));
+            follower.setControl(velocityVoltage.withVelocity(- speed));
         double v = motor.getVelocity().getValue().magnitude();
 //        System.out.println("Speed: " + speed + " / " + rps + " / " + v);
     }

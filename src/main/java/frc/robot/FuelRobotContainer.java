@@ -32,7 +32,7 @@ public class FuelRobotContainer extends RobotContainer {
   private final VelocitySubsystem indexer;
 //  private final ShooterSubsystem shooter;
   private final VelocitySubsystem shooter;
-  private final PositionSubsystem hood = null;
+  private final PositionSubsystem hood;
 //  private final Lights lights = new Lights(RobotConfig.FuelRobot.systemCANBus);
 
   private final CommandXboxController operatorController =
@@ -48,10 +48,10 @@ public class FuelRobotContainer extends RobotContainer {
     // intake = new IntakeSubsystem(IntakeConstants.MotorId, canBus);
     // indexer = new IndexerSubsystem(canBus);
 //  shooter = new ShooterSubsystem(canBus);
-    intake = null;//new VelocitySubsystem(canBus, "Intake", IntakeConstants.MotorId, -1);//IntakeConstants.FollowerId
-    indexer = null;// new VelocitySubsystem(canBus, "Indexer", IndexerConstants.MotorId, IndexerConstants.FollowerId);
+    intake = new VelocitySubsystem(canBus, "Intake", IntakeConstants.MotorId, -1);
+    indexer = new VelocitySubsystem(canBus, "Indexer", IndexerConstants.MotorId, IndexerConstants.FollowerId);
     shooter = new VelocitySubsystem(canBus, "Shooter", ShooterConstants.RightMotorId, ShooterConstants.LeftMotorId);//ShooterConstants.LeftMotorId
-//    hood = new PositionSubsystem(canBus, "Hood", ShooterConstants.HoodMotorId, -1);
+    hood = new PositionSubsystem(canBus, "Hood", ShooterConstants.HoodMotorId, -1);
 
     Supplier<Pose2d> goalPoseSupplier = () -> new Pose2d(Units.feetToMeters(5), Units.feetToMeters(3), Rotation2d.fromDegrees(90));
     Supplier<Pose2d> poseProvider = drivetrain::getPose;
@@ -77,7 +77,7 @@ public class FuelRobotContainer extends RobotContainer {
     // Intake control
     // Right trigger - Intake IN with variable speed
     // Right bumper - Intake OUT
-//    controller.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(new IntakeCommand(intake));
+    controller.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(new IntakeCommand(intake));
 
 //    controller.rightTrigger(OperatorConstants.TriggerThreshold).and(controller.rightBumper().negate()).whileTrue(new RunCommand(() -> intake.run(), intake));
 
@@ -87,8 +87,8 @@ public class FuelRobotContainer extends RobotContainer {
     // Indexer control
     // Left trigger - Indexer IN with variable speed
     // Left bumper - Indexer OUT
-    // controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new IndexerCommand(indexer, Constants.Backward));
-    // controller.leftBumper().whileTrue(new IndexerCommand(indexer, Constants.Backward));
+    controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new IndexerCommand(indexer, Constants.Backward));
+    controller.leftBumper().whileTrue(new IndexerCommand(indexer, Constants.Backward));
 
     // controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new RunCommand(() -> indexer.run(Constants.Forward), indexer));
     // controller.leftBumper().whileTrue(new RunCommand(() -> indexer.run(Constants.Backward), indexer));
@@ -121,19 +121,19 @@ public class FuelRobotContainer extends RobotContainer {
   {
     System.out.println("storeParameters");
 
-    //intake.putParams();
-    //indexer.putParams();
+    intake.putParams();
+    indexer.putParams();
     shooter.putParams();
-    //hood.putParams();
+    hood.putParams();
   }
 
   public void fetchParameters()
   {
     System.out.println("fetchParameters");
 
-    //intake.getParams();
-    //indexer.getParams();
+    intake.getParams();
+    indexer.getParams();
     shooter.getParams();
-    //hood.getParams();
+    hood.getParams();
   }
 }
