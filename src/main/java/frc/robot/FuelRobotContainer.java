@@ -101,13 +101,32 @@ public class FuelRobotContainer extends RobotContainer {
 
 // InstantCommand
 // StartEndCommand
-    controller.start().toggleOnTrue(new RunCommand(() -> fetchParameters(), shooter));
+    controller.start().toggleOnTrue(new Command() {
+        @Override public void initialize() {
+          fetchParameters();    
+        }
+        @Override public boolean isFinished() {
+          return true;
+        }
+    });
+    controller.back().toggleOnTrue(new Command() {
+        @Override public void initialize() {
+          storeParameters();
+        }
+        @Override public void execute() {
+           System.out.println("execute");
+        }
+        @Override public boolean isFinished() {
+          return true;
+        }
+    });
+
 //toggleOnTrue
     controller.a().onTrue(new ShootCommand(shooter));
     controller.b().onTrue(new StopShootCommand(shooter));
 
-    // controller.povDown().whileTrue(new RunCommand(() -> hood.jogUp(), hood));
-    // controller.povUp().whileTrue(new RunCommand(() -> hood.jogDown(), hood));
+    controller.povDown().whileTrue(new RunCommand(() -> hood.jogDown(), hood));
+    controller.povUp().whileTrue(new RunCommand(() -> hood.jogUp(), hood));
     // controller.povLeft().or(controller.povRight()).whileTrue(new RunCommand(() -> elevator.stop(), elevator));
   }
 
@@ -132,8 +151,8 @@ public class FuelRobotContainer extends RobotContainer {
     System.out.println("fetchParameters");
 
     intake.getParams();
-    indexer.getParams();
-    shooter.getParams();
-    hood.getParams();
+    // indexer.getParams();
+    // shooter.getParams();
+    // hood.getParams();
   }
 }

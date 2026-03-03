@@ -185,6 +185,7 @@ public class VelocitySubsystem extends SubsystemBase {
         running = false;
         targetVelocityChanged = false;
         atSpeed = false;
+        velocityRPM = 0;
     }
 
     public void run() {
@@ -199,9 +200,9 @@ public class VelocitySubsystem extends SubsystemBase {
         if (setRpm != velocityRPM)
         {
             velocityRPM = setRpm;
-            motor.setControl(velocityVoltage.withVelocity(- velocityRPM / 60.0));
+            motor.setControl(velocityVoltage.withVelocity(velocityRPM / 60.0));
             if (follower != null)
-                follower.setControl(velocityVoltage.withVelocity(velocityRPM / 60.0));
+                follower.setControl(velocityVoltage.withVelocity(- velocityRPM / 60.0));
             System.out.println("setControl");
         }
 //        .withFeedForward(feedforward))
@@ -305,7 +306,7 @@ public class VelocitySubsystem extends SubsystemBase {
     public void putParams() {
         String prefix = name + "/";
 
-        SmartDashboard.putNumber(prefix + "Set RPM", velocityRPM);
+        SmartDashboard.putNumber(prefix + "Set RPM", targetVelocity);
         SmartDashboard.putNumber(prefix + "RPM", velocity);
 
         SmartDashboard.putNumber(prefix + "kP", kP);

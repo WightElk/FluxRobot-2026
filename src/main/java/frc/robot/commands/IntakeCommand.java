@@ -26,12 +26,15 @@ public class IntakeCommand extends Command {
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {}
+  public void initialize() {
+    intake.reset();
+  }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    intake.setSpeed(IntakeConstants.InSpeed * Constants.MaxMotorRPS);
+    //intake.setSpeed(IntakeConstants.InSpeed * Constants.MaxMotorRPS);
+    intake.run();
   }
 
   // Called once the command ends or is interrupted. This ensures the roller is not running when not intented.

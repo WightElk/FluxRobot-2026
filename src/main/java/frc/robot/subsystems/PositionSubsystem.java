@@ -80,7 +80,7 @@ public class PositionSubsystem extends SubsystemBase {
     public static final double DefaultMinOutput = -1.0;
     public static final double DeltaPos = 50;
 
-    public static final int JogStep = 100;
+    public static final int JogStep = -1;
 
     // PID coefficients
     public double kP = DefaultKP;

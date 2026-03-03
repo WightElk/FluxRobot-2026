@@ -97,7 +97,7 @@ public final class Constants {
   public static final class ShooterConstants {
     public static final int LeftMotorId = 10;
     public static final int RightMotorId = 11;
-    public static final int HoodMotorId = 15;
+    public static final int HoodMotorId = 2;//15;
 
     public static final int SHOOT_MOTOR_CURRENT_LIMIT = 40;
     public static final double SHOOT_MOTOR_VOLTAGE_COMP = 10;
