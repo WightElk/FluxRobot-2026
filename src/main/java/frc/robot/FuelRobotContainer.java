@@ -165,7 +165,7 @@ public class FuelRobotContainer extends RobotContainer {
   protected int connectedJoystickCount()
   {
     int connectedJoystickCount = 0;
-    for (int i = 0; i < 8; ++i)
+    for (int i = 0; i < 6; ++i)
       if (DriverStation.isJoystickConnected(i))
         connectedJoystickCount++;
     return connectedJoystickCount;

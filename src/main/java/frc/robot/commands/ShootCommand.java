@@ -27,24 +27,29 @@ public class ShootCommand extends Command {
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {}
+  public void initialize() {
+    System.out.println("ShootCommand-initialize");
+    shooter.setSpeed(ShooterConstants.Speed);
+  }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    shooter.setSpeed(ShooterConstants.Speed);
-    System.out.println("ShootCommand-execute");
+   System.out.println("ShootCommand-execute");
+    // shooter.setSpeed(ShooterConstants.Speed);
   }
 
   // Called once the command ends or is interrupted. This ensures the roller is not running when not intented.
   @Override
   public void end(boolean interrupted) {
+    System.out.println("ShootCommand-end");
     //shooter.stop();
   }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
+    System.out.println("ShootCommand-isFinished");
     return false;
   }
 }

@@ -35,7 +35,7 @@ public class IndexerCommand extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    double speed = IndexerConstants.InSpeed * Constants.MaxMotorRPS;
+    double speed = IndexerConstants.InSpeed;// * Constants.MaxMotorRPS;
     if (direction != Constants.Forward)
       speed = -speed;
     indexer.setSpeed(speed);

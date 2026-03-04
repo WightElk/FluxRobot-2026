@@ -6,6 +6,7 @@ package frc.robot.commands;
 
 import frc.robot.Constants;
 import frc.robot.Constants.IntakeConstants;
+import frc.robot.Constants.ShooterConstants;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.VelocitySubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -33,8 +34,8 @@ public class IntakeCommand extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    //intake.setSpeed(IntakeConstants.InSpeed * Constants.MaxMotorRPS);
-    intake.run();
+    intake.setSpeed(IntakeConstants.InSpeed);
+//    intake.run(Constants.Backward);
   }
 
   // Called once the command ends or is interrupted. This ensures the roller is not running when not intented.

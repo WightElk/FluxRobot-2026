@@ -3,6 +3,8 @@ package frc.robot.subsystems;
 import static edu.wpi.first.units.Units.*;
 import static edu.wpi.first.util.ErrorMessages.requireNonNullParam;
 
+import org.littletonrobotics.junction.AutoLogOutput;
+
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkMaxAlternateEncoder;
 import com.revrobotics.spark.SparkRelativeEncoder;
@@ -58,6 +60,7 @@ public class VelocitySubsystem extends SubsystemBase {
     private boolean targetVelocityChanged = false;
     private double velocityRPM = 0;
     private double targetVelocity = DefaultVelocityRPM;
+    @AutoLogOutput(key = "{name}/Velocity")
     private double velocity = 0;
 
     private final PIDCtrl pidCtrl;
@@ -129,11 +132,10 @@ public class VelocitySubsystem extends SubsystemBase {
     public void periodic() {
         if (running && targetVelocityChanged)
         {
-            double setRpm = direction == Constants.Backward ? -targetVelocity : targetVelocity;
-            setRpm = setRpm / 60.0;
-            motor.setControl(velocityVoltage.withVelocity(- velocityRPM / 60.0));
+            velocityRPM = direction == Constants.Backward ? -targetVelocity : targetVelocity;
+            motor.setControl(velocityVoltage.withVelocity(velocityRPM / 60.0));
             if (follower != null)
-                follower.setControl(velocityVoltage.withVelocity(velocityRPM / 60.0));
+                follower.setControl(velocityVoltage.withVelocity(- velocityRPM / 60.0));
             System.out.println("setControl-periodic");
         }
 
@@ -206,8 +208,9 @@ public class VelocitySubsystem extends SubsystemBase {
             System.out.println("setControl");
         }
 //        .withFeedForward(feedforward))
+        running = true;
         double v = motor.getVelocity().getValue().magnitude();
-        System.out.println("Speed: " + velocityRPM + " / " + v);
+        System.out.println("Run: " + velocityRPM + " / " + v);
     }
 
     public void setSpeed(double speed) {
@@ -222,7 +225,7 @@ public class VelocitySubsystem extends SubsystemBase {
         if (follower != null)
             follower.setControl(velocityVoltage.withVelocity(- speed));
         double v = motor.getVelocity().getValue().magnitude();
-//        System.out.println("Speed: " + speed + " / " + rps + " / " + v);
+        System.out.println("SetSpeed: " + speed + " / " + rps + " / " + v);
     }
 
     public void stop() {

@@ -71,7 +71,7 @@ public final class Constants {
   public static final class IntakeConstants {
     public static final int MotorId = 1;
     public static final int FollowerId = 2;
-    public static final double InSpeed = -1.8;
+    public static final double InSpeed = -20;
     public static final double OutSpeed = -0.2;
 
     public static final double MaxMotorRPS = 0.5 * MaxMotorRPM / 60.0;
@@ -88,8 +88,8 @@ public final class Constants {
 
     public static final double MaxMotorRPS = 0.5 * MaxMotorRPM / 60.0;
 
-    public static final double InSpeed = 1.5;//ROLLER_ALGAE_IN
-    public static final double BackwardSpeed = -1.5;//ROLLER_ALGAE_OUT
+    public static final double InSpeed = 20;//1.5;//ROLLER_ALGAE_IN
+    public static final double BackwardSpeed = -3000;//-1.5;//ROLLER_ALGAE_OUT
     public static final int ROLLER_MOTOR_CURRENT_LIMIT = 60;
     public static final double ROLLER_MOTOR_VOLTAGE_COMP = 10;
   }
