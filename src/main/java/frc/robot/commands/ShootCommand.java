@@ -33,6 +33,7 @@ public class ShootCommand extends Command {
   @Override
   public void execute() {
     shooter.setSpeed(ShooterConstants.Speed);
+    System.out.println("ShootCommand-execute");
   }
 
   // Called once the command ends or is interrupted. This ensures the roller is not running when not intented.

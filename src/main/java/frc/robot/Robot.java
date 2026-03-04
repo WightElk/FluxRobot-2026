@@ -4,6 +4,13 @@
 
 package frc.robot;
 
+import org.littletonrobotics.junction.LogFileUtil;
+import org.littletonrobotics.junction.LoggedRobot;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.NT4Publisher;
+import org.littletonrobotics.junction.wpilog.WPILOGReader;
+import org.littletonrobotics.junction.wpilog.WPILOGWriter;
+
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;  
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -15,10 +22,12 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
  * the TimedRobot documentation. If you change the name of this class or the package after creating
  * this project, you must also update the Main.java file in the project.
  */
-public class Robot extends TimedRobot {
+
+public class Robot extends LoggedRobot {
   private Command m_autonomousCommand;
 
   private final RobotContainer m_robotContainer;
+  private boolean releaseVersion = true;
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -27,11 +36,14 @@ public class Robot extends TimedRobot {
   public Robot() {
     // RobotController comments are set in RoboRIO Web UI
     String comments = RobotController.getComments();
+    initLogger();
+
     SmartDashboard.putString("Robot", comments);
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = comments.contains("AlgaeRobot") ? new AlgaeRobotContainer() :
       comments.contains("CoralRobot") ? new CoralRobotContainer() : new FuelRobotContainer();
+    releaseVersion = !comments.contains("dev-version");
   }
 
   /**
@@ -104,4 +116,24 @@ public class Robot extends TimedRobot {
   /** This function is called periodically whilst in simulation. */
   @Override
   public void simulationPeriodic() {}
+
+  public boolean isDevVersion() {
+    return !releaseVersion;
+  }
+
+  protected void initLogger() {
+    Logger.recordMetadata("ProjectName", "FluxRobot-2026");
+
+    if (isReal()) {
+        Logger.addDataReceiver(new WPILOGWriter()); // Log to a USB stick ("/U/logs")
+        Logger.addDataReceiver(new NT4Publisher()); // Publish data to NetworkTables
+    } else {
+        setUseTiming(false); // Run as fast as possible
+        String logPath = LogFileUtil.findReplayLog(); // Pull the replay log from AdvantageScope (or prompt the user)
+        Logger.setReplaySource(new WPILOGReader(logPath)); // Read replay log
+        Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim"))); // Save outputs to a new log
+    }
+
+    Logger.start(); // Start logging! No more data receivers, replay sources, or metadata values may be added.
+  }
 }

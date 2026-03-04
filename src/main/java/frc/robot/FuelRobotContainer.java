@@ -7,6 +7,7 @@ import com.ctre.phoenix6.CANBus;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -45,6 +46,10 @@ public class FuelRobotContainer extends RobotContainer {
   public FuelRobotContainer() {
     super(RobotConfig.FuelRobot, false);
 
+    int connectedJoystickCount = connectedJoystickCount();
+    System.out.println("connectedJoystickCount " + connectedJoystickCount);
+    useTwoControllers = connectedJoystickCount == 2;
+
     // intake = new IntakeSubsystem(IntakeConstants.MotorId, canBus);
     // indexer = new IndexerSubsystem(canBus);
 //  shooter = new ShooterSubsystem(canBus);
@@ -68,9 +73,8 @@ public class FuelRobotContainer extends RobotContainer {
     super.configureBindings();
 
 //    SmartDashboard.putBoolean("Use 2 controllers", OperatorConstants.UseTwoControllers);
-
-    useTwoControllers = SmartDashboard.getBoolean("2 controllers", OperatorConstants.UseTwoControllers);
-    useTwoControllers = false;
+    // useTwoControllers = SmartDashboard.getBoolean("2 controllers", OperatorConstants.UseTwoControllers);
+    // useTwoControllers = false;
 
     CommandXboxController controller = useTwoControllers ? operatorController : driverController;
 
@@ -88,7 +92,7 @@ public class FuelRobotContainer extends RobotContainer {
     // Left trigger - Indexer IN with variable speed
     // Left bumper - Indexer OUT
     controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new IndexerCommand(indexer, Constants.Backward));
-    controller.leftBumper().whileTrue(new IndexerCommand(indexer, Constants.Backward));
+    controller.leftBumper().whileTrue(new IndexerCommand(indexer, Constants.Forward));
 
     // controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new RunCommand(() -> indexer.run(Constants.Forward), indexer));
     // controller.leftBumper().whileTrue(new RunCommand(() -> indexer.run(Constants.Backward), indexer));
@@ -98,6 +102,16 @@ public class FuelRobotContainer extends RobotContainer {
     // B - Shooter OFF
 //      controller.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(new RawShooterCommand(shooter, () -> controller.getLeftTriggerAxis() - OperatorConstants.TriggerThreshold));
 //    controller.rightTrigger(OperatorConstants.TriggerThreshold).and(controller.rightBumper()).whileTrue(new RawShooterCommand(shooter, () -> (controller.getRightTriggerAxis() )));
+
+//toggleOnTrue
+    controller.a().onTrue(new ShootCommand(shooter));
+    controller.b().onTrue(new StopShootCommand(shooter));
+
+    controller.povDown().whileTrue(new RunCommand(() -> hood.jogDown(), hood));
+    controller.povUp().whileTrue(new RunCommand(() -> hood.jogUp(), hood));
+
+    controller.povUp().whileTrue(new RunCommand(() -> hood.setPosition(0), hood));
+    // controller.povLeft().or(controller.povRight()).whileTrue(new RunCommand(() -> elevator.stop(), elevator));
 
 // InstantCommand
 // StartEndCommand
@@ -120,14 +134,6 @@ public class FuelRobotContainer extends RobotContainer {
           return true;
         }
     });
-
-//toggleOnTrue
-    controller.a().onTrue(new ShootCommand(shooter));
-    controller.b().onTrue(new StopShootCommand(shooter));
-
-    controller.povDown().whileTrue(new RunCommand(() -> hood.jogDown(), hood));
-    controller.povUp().whileTrue(new RunCommand(() -> hood.jogUp(), hood));
-    // controller.povLeft().or(controller.povRight()).whileTrue(new RunCommand(() -> elevator.stop(), elevator));
   }
 
   public Command getAutonomousCommand() {
@@ -154,5 +160,14 @@ public class FuelRobotContainer extends RobotContainer {
     // indexer.getParams();
     // shooter.getParams();
     // hood.getParams();
+  }
+
+  protected int connectedJoystickCount()
+  {
+    int connectedJoystickCount = 0;
+    for (int i = 0; i < 8; ++i)
+      if (DriverStation.isJoystickConnected(i))
+        connectedJoystickCount++;
+    return connectedJoystickCount;
   }
 }
