@@ -9,6 +9,7 @@ import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.VelocitySubsystem;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 
 /** A command to take Algae into the robot. */
@@ -37,6 +38,27 @@ public class ShootCommand extends Command {
   public void execute() {
    System.out.println("ShootCommand-execute");
     // shooter.setSpeed(ShooterConstants.Speed);
+
+        // if (running && targetVelocityChanged)
+        // {
+        //     velocityRPM = direction == Constants.Backward ? -targetVelocity : targetVelocity;
+        //     motor.setControl(velocityVoltage.withVelocity(velocityRPM / 60.0));
+
+        //     double speed;
+        //     shooter.setSpeed(speed);
+        //     System.out.println("setControl-periodic");
+        // }
+
+        // double vel = 60 * getVelocity();
+        // if (vel != velocity)
+        // {
+        //     String prefix = name + "/";
+        //     SmartDashboard.putNumber(prefix + "RPM", vel);
+        //     velocity = vel;
+        // }
+        // double target = direction == Constants.Backward ? -targetVelocity : targetVelocity;
+        // atSpeed = Math.abs(vel - target) <= rpmDelta;
+        // //System.out.println("RPM: " + velocityRPM + " / " + vel);
   }
 
   // Called once the command ends or is interrupted. This ensures the roller is not running when not intented.
@@ -52,4 +74,6 @@ public class ShootCommand extends Command {
     System.out.println("ShootCommand-isFinished");
     return false;
   }
+
+  //
 }

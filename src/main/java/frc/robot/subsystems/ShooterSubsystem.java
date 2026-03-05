@@ -142,6 +142,22 @@ public class ShooterSubsystem extends SubsystemBase {
         downPidCtrl = new PIDCtrl(kP, kD, kI, timeDelta);
     }
 
+    public void shoot(double distance)
+    {
+        // Set speed
+        // Set hood angle
+        // Wait
+        // Run indexer
+    }
+
+    public void shoot()
+    {
+    }
+
+    public void shootOnce()
+    {
+    }
+
     @Override
     public void periodic() {
     }

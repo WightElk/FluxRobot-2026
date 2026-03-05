@@ -16,8 +16,9 @@ import frc.robot.Constants.IndexerConstants;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.ShooterConstants;
+import frc.robot.subsystems.VelocityMech;
 import frc.robot.subsystems.VelocitySubsystem;
-import frc.robot.subsystems.PositionSubsystem;
+import frc.robot.subsystems.PositionMech;
 import frc.robot.autos.DriveForwardAuto;
 import frc.robot.commands.IndexerCommand;
 import frc.robot.commands.IntakeCommand;
@@ -29,11 +30,11 @@ import frc.robot.commands.StopShootCommand;
  */
 public class FuelRobotContainer extends RobotContainer {
   private final CANBus canBus = new CANBus(RobotConfig.FuelRobot.systemCANBus);
-  private final VelocitySubsystem intake;
+  private final VelocityMech intake;
   private final VelocitySubsystem indexer;
 //  private final ShooterSubsystem shooter;
   private final VelocitySubsystem shooter;
-  private final PositionSubsystem hood;
+  private final PositionMech hood;
 //  private final Lights lights = new Lights(RobotConfig.FuelRobot.systemCANBus);
 
   private final CommandXboxController operatorController =
@@ -52,11 +53,11 @@ public class FuelRobotContainer extends RobotContainer {
 
     // intake = new IntakeSubsystem(IntakeConstants.MotorId, canBus);
     // indexer = new IndexerSubsystem(canBus);
-//  shooter = new ShooterSubsystem(canBus);
-    intake = new VelocitySubsystem(canBus, "Intake", IntakeConstants.MotorId, -1);
+//  shooter = new ShooterSubsystem(canBus)
+    intake = new VelocityMech(canBus, "Intake", IntakeConstants.MotorId);
     indexer = new VelocitySubsystem(canBus, "Indexer", IndexerConstants.MotorId, IndexerConstants.FollowerId);
     shooter = new VelocitySubsystem(canBus, "Shooter", ShooterConstants.RightMotorId, ShooterConstants.LeftMotorId);//ShooterConstants.LeftMotorId
-    hood = new PositionSubsystem(canBus, "Hood", ShooterConstants.HoodMotorId, -1);
+    hood = new PositionMech(canBus, "Hood", ShooterConstants.HoodMotorId, -1);
 
     Supplier<Pose2d> goalPoseSupplier = () -> new Pose2d(Units.feetToMeters(5), Units.feetToMeters(3), Rotation2d.fromDegrees(90));
     Supplier<Pose2d> poseProvider = drivetrain::getPose;

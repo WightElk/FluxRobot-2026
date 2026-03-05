@@ -8,18 +8,18 @@ import frc.robot.Constants;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.subsystems.IntakeSubsystem;
-import frc.robot.subsystems.VelocitySubsystem;
+import frc.robot.subsystems.VelocityMech;
 import edu.wpi.first.wpilibj2.command.Command;
 
 /** A command to take Algae into the robot. */
 public class IntakeCommand extends Command {
-  private final VelocitySubsystem intake;
+  private final VelocityMech intake;
   /**
    * Rolls Algae into the intake.
    *
-   * @param roller The subsystem used by this command.
+   * @param intake The subsystem used by this command.
    */
-  public IntakeCommand(VelocitySubsystem intake) {
+  public IntakeCommand(VelocityMech intake) {
     this.intake = intake;
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(intake);
