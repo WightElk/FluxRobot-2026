@@ -3,6 +3,8 @@ package frc.robot.subsystems;
 import static edu.wpi.first.units.Units.*;
 
 import java.util.OptionalInt;
+import java.util.function.BiConsumer;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.CANBus;
@@ -14,6 +16,14 @@ import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveModule.ModuleRequest;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.FollowPathCommand;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.controllers.PathFollowingController;
+import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.util.DriveFeedforwards;
+import com.pathplanner.lib.config.RobotConfig;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -34,10 +44,11 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Subsystem;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
-import frc.robot.RobotConfig;
 import frc.robot.SwerveModuleConfig;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
@@ -72,6 +83,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     public Alliance allianceColor = Alliance.Blue;
     public OptionalInt stationLocation;
     
+    private com.pathplanner.lib.config.RobotConfig robotConfig;
+
     /* Swerve requests to apply during SysId characterization */
     private final SwerveRequest.SysIdSwerveTranslation m_translationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
     private final SwerveRequest.SysIdSwerveSteerGains m_steerCharacterization = new SwerveRequest.SysIdSwerveSteerGains();
@@ -150,7 +163,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      * @param modules               Constants for each specific module
      */
     public CommandSwerveDrivetrain(
-        RobotConfig config,
+        frc.robot.RobotConfig config,
         SwerveDrivetrainConstants drivetrainConstants,
         SwerveModuleConstants<?, ?, ?>... modules)
     {
@@ -186,7 +199,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      * @param modules                 Constants for each specific module
      */
     public CommandSwerveDrivetrain(
-        RobotConfig config,
+        frc.robot.RobotConfig config,
         SwerveDrivetrainConstants drivetrainConstants,
         double odometryUpdateFrequency,
         SwerveModuleConstants<?, ?, ?>... modules)
@@ -227,7 +240,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      * @param modules                   Constants for each specific module
      */
     public CommandSwerveDrivetrain(
-        RobotConfig config,
+        frc.robot.RobotConfig config,
         SwerveDrivetrainConstants drivetrainConstants,
         double odometryUpdateFrequency,
         Matrix<N3, N1> odometryStandardDeviation,
@@ -455,7 +468,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 //        return (Constants.Swerve.invertGyro) ? Rotation2d.fromDegrees(360 - gyro.getYaw()) : Rotation2d.fromDegrees(gyro.getYaw());
         return Rotation2d.fromDegrees(gyro.getYaw().getValueAsDouble());
     }
-/*
+
+    //TODO
     public void drive(ChassisSpeeds targetSpeeds) {
         SwerveModuleState[] swerveModuleStates =
             kinematics.toSwerveModuleStates(targetSpeeds);
@@ -464,12 +478,91 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         SwerveModuleState[] moduleStates = getState().ModuleStates;
         for(int i = 0; i < moduleStates.length; ++i){
             SwerveModuleState mod = moduleStates[i];
-            desiredState = CTREModuleState.optimize(desiredState, getState().angle); 
-            mod.setAngle(desiredState);
-            mod.setSpeed(desiredState, true);
+            // desiredState = CTREModuleState.optimize(desiredState, getState().angle); 
+            // mod.setAngle(desiredState);
+            // mod.setSpeed(desiredState, true);
     
 //            mod.setDesiredState(swerveModuleStates[mod.moduleNumber], true);
         }
     }
-*/
+
+    protected boolean initPathPlanner() {
+        // Load the RobotConfig from the GUI settings. You should probably
+        // store this in your Constants file
+        try{
+            robotConfig = RobotConfig.fromGUISettings();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        // Configure AutoBuilder last
+        AutoBuilder.configure(
+            this::getPose, // Robot pose supplier
+            this::resetPose, // Method to reset odometry (will be called if your auto has a starting pose)
+            this::getChassisSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+            (speeds, feedforwards) -> drive(speeds), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
+            new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
+                    new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
+                    new PIDConstants(5.0, 0.0, 0.0) // Rotation PID constants
+            ),
+            robotConfig, // The robot configuration
+            () -> {
+            // Boolean supplier that controls when the path will be mirrored for the red alliance
+            // This will flip the path being followed to the red side of the field.
+            // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+
+            var alliance = DriverStation.getAlliance();
+            if (alliance.isPresent()) {
+                return alliance.get() == DriverStation.Alliance.Red;
+            }
+            return false;
+            },
+            this // Reference to this subsystem to set requirements
+        );
+        return true;
+    }
+
+    public Command followPathCommand(String pathName) {
+        try{
+            PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
+
+    //           public FollowPathCommand(
+    //   PathPlannerPath path,
+    //   Supplier<Pose2d> poseSupplier,
+    //   Supplier<ChassisSpeeds> speedsSupplier,
+    //   BiConsumer<ChassisSpeeds, DriveFeedforwards> output,
+    //   PathFollowingController controller,
+    //   RobotConfig robotConfig,
+    //   BooleanSupplier shouldFlipPath,
+    //   Subsystem... requirements) {
+
+            return new FollowPathCommand(
+                path,
+                this::getPose, // Robot pose supplier
+                this::getChassisSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+                (speeds, feedforwards) -> drive(speeds), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds, AND feedforwards
+                new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
+                        new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
+                        new PIDConstants(5.0, 0.0, 0.0) // Rotation PID constants
+                ),
+                robotConfig, // The robot configuration
+                () -> {
+                    // Boolean supplier that controls when the path will be mirrored for the red alliance
+                    // This will flip the path being followed to the red side of the field.
+                    // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+
+                    var alliance = DriverStation.getAlliance();
+                    if (alliance.isPresent()) {
+                        return alliance.get() == DriverStation.Alliance.Red;
+                    }
+                    return false;
+                },
+                this // Reference to this subsystem to set requirements
+            );
+        } catch (Exception e) {
+            DriverStation.reportError("Big oops: " + e.getMessage(), e.getStackTrace());
+            return Commands.none();
+        }
+    }
 }

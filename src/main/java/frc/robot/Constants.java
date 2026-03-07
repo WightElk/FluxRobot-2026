@@ -10,6 +10,7 @@ import java.util.List;
 import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 
 import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -324,6 +325,14 @@ public final class Constants {
     public static final TrapezoidProfile.Constraints kThetaControllerConstraints =
         new TrapezoidProfile.Constraints(
             kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
+
+    public static final int CommandCount = 2;
+    // Arrays of pairs: { Command name, Path name }
+    public static final String[][] commands = {
+      {"Left", "LeftPath"},
+      {"Center", "LeftPath"},
+      {"Right", "LeftPath"}
+    };
   }
 
   public static class LightConstants {
