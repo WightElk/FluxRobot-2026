@@ -34,6 +34,7 @@ import frc.robot.subsystems.VelocitySubsystem;
 import frc.robot.subsystems.PositionMech;
 import frc.robot.autos.DriveForwardAuto;
 import frc.robot.commands.Autos;
+import frc.robot.commands.FeederCommand;
 import frc.robot.commands.IndexerCommand;
 import frc.robot.commands.IntakeCommand;
 import frc.robot.commands.ShootCommand;
@@ -45,7 +46,9 @@ import frc.robot.commands.StopShootCommand;
 public class FuelRobotContainer extends RobotContainer {
   private final CANBus canBus = new CANBus(RobotConfig.FuelRobot.systemCANBus);
   private final VelocityMech intake;
+  private final PositionMech tilter;
   private final VelocitySubsystem indexer;
+  private final VelocityMech feeder;
 //  private final ShooterSubsystem shooter;
   private final VelocitySubsystem shooter;
   private final PositionMech hood;
@@ -71,9 +74,11 @@ public class FuelRobotContainer extends RobotContainer {
     // indexer = new IndexerSubsystem(canBus);
 //  shooter = new ShooterSubsystem(canBus)
     intake = new VelocityMech(canBus, "Intake", IntakeConstants.MotorId);
-    indexer = new VelocitySubsystem(canBus, "Indexer", IndexerConstants.MotorId, IndexerConstants.FollowerId);
+    tilter = new PositionMech(canBus, "Tilter", IntakeConstants.TiltMotorId);
+    indexer = new VelocitySubsystem(canBus, "Indexer", IndexerConstants.MotorId, -1);
+    feeder = new VelocityMech(canBus, "Indexer", IndexerConstants.FollowerId);
     shooter = new VelocitySubsystem(canBus, "Shooter", ShooterConstants.RightMotorId, ShooterConstants.LeftMotorId);//ShooterConstants.LeftMotorId
-    hood = new PositionMech(canBus, "Hood", ShooterConstants.HoodMotorId, -1);
+    hood = new PositionMech(canBus, "Hood", ShooterConstants.HoodMotorId);
 
     Supplier<Pose2d> goalPoseSupplier = () -> new Pose2d(Units.feetToMeters(5), Units.feetToMeters(3), Rotation2d.fromDegrees(90));
     Supplier<Pose2d> poseProvider = drivetrain::getPose;
@@ -116,7 +121,7 @@ public class FuelRobotContainer extends RobotContainer {
     // Left trigger - Indexer IN with variable speed
     // Left bumper - Indexer OUT
     controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new IndexerCommand(indexer, Constants.Backward));
-    controller.leftBumper().whileTrue(new IndexerCommand(indexer, Constants.Forward));
+    controller.leftBumper().whileTrue(new FeederCommand(feeder, Constants.Forward));
 
     // controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new RunCommand(() -> indexer.run(Constants.Forward), indexer));
     // controller.leftBumper().whileTrue(new RunCommand(() -> indexer.run(Constants.Backward), indexer));
@@ -133,6 +138,9 @@ public class FuelRobotContainer extends RobotContainer {
 
     controller.povDown().whileTrue(new RunCommand(() -> hood.jogDown(), hood));
     controller.povUp().whileTrue(new RunCommand(() -> hood.jogUp(), hood));
+
+    controller.povRight().whileTrue(new RunCommand(() -> tilter.jogDown(), tilter));
+    controller.povLeft().whileTrue(new RunCommand(() -> tilter.jogUp(), tilter));
 
     controller.povUp().whileTrue(new RunCommand(() -> hood.setPosition(0), hood));
     // controller.povLeft().or(controller.povRight()).whileTrue(new RunCommand(() -> elevator.stop(), elevator));
@@ -180,7 +188,9 @@ public class FuelRobotContainer extends RobotContainer {
     System.out.println("storeParameters");
 
     intake.putParams();
+    tilter.putParams();
     indexer.putParams();
+    feeder.putParams();
     shooter.putParams();
     hood.putParams();
 
@@ -192,9 +202,11 @@ public class FuelRobotContainer extends RobotContainer {
     System.out.println("fetchParameters");
 
     intake.getParams();
-    // indexer.getParams();
-    // shooter.getParams();
-    // hood.getParams();
+    tilter.getParams();
+    indexer.getParams();
+    feeder.getParams();
+    shooter.getParams();
+    hood.getParams();
   }
 
   protected int connectedJoystickCount()
@@ -208,7 +220,7 @@ public class FuelRobotContainer extends RobotContainer {
 
   protected void initAutoCommands()
   {
-      Command cmd = new PathPlannerAuto(Constants.AutoConstants.commands[0][1]);
+    Command cmd = new PathPlannerAuto(Constants.AutoConstants.commands[0][1]);
     autoCommandChooser.setDefaultOption(Constants.AutoConstants.commands[0][0], cmd);
 
     for (int i = 1; i < Constants.AutoConstants.commands.length; ++i)
@@ -232,10 +244,10 @@ public class FuelRobotContainer extends RobotContainer {
 
     // Create the path using the waypoints created above
     PathPlannerPath path = new PathPlannerPath(
-            waypoints,
-            constraints,
-            null, // The ideal starting state, this is only relevant for pre-planned paths, so can be null for on-the-fly paths.
-            new GoalEndState(0.0, Rotation2d.fromDegrees(-90)) // Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
+      waypoints,
+      constraints,
+      null, // The ideal starting state, this is only relevant for pre-planned paths, so can be null for on-the-fly paths.
+      new GoalEndState(0.0, Rotation2d.fromDegrees(-90)) // Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
     );
 
     // Prevent the path from being flipped if the coordinates are already correct

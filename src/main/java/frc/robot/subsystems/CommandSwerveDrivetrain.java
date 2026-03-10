@@ -84,6 +84,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     public OptionalInt stationLocation;
     
     private com.pathplanner.lib.config.RobotConfig robotConfig;
+    private PIDConstants translationPid = new PIDConstants(5.0, 0.0, 0.0);
+    private PIDConstants rotationPid = new PIDConstants(5.0, 0.0, 0.0);
 
     /* Swerve requests to apply during SysId characterization */
     private final SwerveRequest.SysIdSwerveTranslation m_translationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
@@ -327,14 +329,15 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 //            System.out.println("Drive-periodic " + m_hasAppliedOperatorPerspective);
 
             DriverStation.getAlliance().ifPresent(color -> {
+                allianceColor = color;
+                stationLocation = DriverStation.getLocation();
+                m_hasAppliedOperatorPerspective = true;
+                //TODO
                 // setOperatorPerspectiveForward(
                 //     color == Alliance.Red
                 //         ? kRedAlliancePerspectiveRotation
                 //         : kBlueAlliancePerspectiveRotation
                 // );
-                allianceColor = color;
-                stationLocation = DriverStation.getLocation();
-                m_hasAppliedOperatorPerspective = true;
             });
         }
 
@@ -471,14 +474,13 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     //TODO
     public void drive(ChassisSpeeds targetSpeeds) {
-        SwerveModuleState[] swerveModuleStates =
-            kinematics.toSwerveModuleStates(targetSpeeds);
+        SwerveModuleState[] swerveModuleStates = kinematics.toSwerveModuleStates(targetSpeeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.DriveConstants.maxSpeed);
 
         SwerveModuleState[] moduleStates = getState().ModuleStates;
         for(int i = 0; i < moduleStates.length; ++i){
             SwerveModuleState mod = moduleStates[i];
-            // desiredState = CTREModuleState.optimize(desiredState, getState().angle); 
+//            desiredState = CTREModuleState.optimize(desiredState, getState().angle); 
             // mod.setAngle(desiredState);
             // mod.setSpeed(desiredState, true);
     
@@ -501,22 +503,17 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             this::getPose, // Robot pose supplier
             this::resetPose, // Method to reset odometry (will be called if your auto has a starting pose)
             this::getChassisSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-            (speeds, feedforwards) -> drive(speeds), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
+            //TODO :drive()
+            (speeds, feedforwards) -> setChassisSpeeds(speeds), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
             new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
-                    new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
-                    new PIDConstants(5.0, 0.0, 0.0) // Rotation PID constants
+                translationPid, rotationPid
             ),
             robotConfig, // The robot configuration
             () -> {
-            // Boolean supplier that controls when the path will be mirrored for the red alliance
-            // This will flip the path being followed to the red side of the field.
-            // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
-
-            var alliance = DriverStation.getAlliance();
-            if (alliance.isPresent()) {
-                return alliance.get() == DriverStation.Alliance.Red;
-            }
-            return false;
+                // Boolean supplier that controls when the path will be mirrored for the red alliance
+                // This will flip the path being followed to the red side of the field.
+                // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+                return allianceColor == Alliance.Red;
             },
             this // Reference to this subsystem to set requirements
         );
@@ -541,22 +538,17 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 path,
                 this::getPose, // Robot pose supplier
                 this::getChassisSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-                (speeds, feedforwards) -> drive(speeds), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds, AND feedforwards
+                //TODO :drive()
+                (speeds, feedforwards) -> setChassisSpeeds(speeds), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds, AND feedforwards
                 new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
-                        new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
-                        new PIDConstants(5.0, 0.0, 0.0) // Rotation PID constants
+                    translationPid, rotationPid
                 ),
                 robotConfig, // The robot configuration
                 () -> {
                     // Boolean supplier that controls when the path will be mirrored for the red alliance
                     // This will flip the path being followed to the red side of the field.
                     // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
-
-                    var alliance = DriverStation.getAlliance();
-                    if (alliance.isPresent()) {
-                        return alliance.get() == DriverStation.Alliance.Red;
-                    }
-                    return false;
+                    return allianceColor == Alliance.Red;
                 },
                 this // Reference to this subsystem to set requirements
             );

@@ -72,6 +72,7 @@ public final class Constants {
   public static final class IntakeConstants {
     public static final int MotorId = 1;
     public static final int FollowerId = 2;
+    public static final int TiltMotorId = 9;
     public static final double InSpeed = -20;
     public static final double OutSpeed = -0.2;
 

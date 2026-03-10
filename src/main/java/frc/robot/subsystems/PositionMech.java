@@ -2,13 +2,14 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
 
+import org.littletonrobotics.junction.AutoLogOutput;
+
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkMaxAlternateEncoder;
 import com.revrobotics.spark.SparkRelativeEncoder;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.PositionVoltage;
@@ -41,9 +42,7 @@ import frc.robot.PIDCtrl;
 public class PositionMech extends SubsystemBase {
     private final String name;
     private final TalonFX motor;
-    private final TalonFX follower;
     private final TalonFXConfiguration configs;
-
     private final PositionVoltage positionVoltage = new PositionVoltage(0).withSlot(0);
     /* Start at velocity 0, use slot 1 */
     private final PositionTorqueCurrentFOC positionTorque = new PositionTorqueCurrentFOC(0).withSlot(1);
@@ -52,6 +51,7 @@ public class PositionMech extends SubsystemBase {
 
     // private final RelativeEncoder upEncoder;
 
+    @AutoLogOutput(key = "{name}/Target Pos")
     private double targetPosition = DefaultPosition;
     private double position = 0;
     private boolean running = false;
@@ -106,10 +106,9 @@ public class PositionMech extends SubsystemBase {
     /**
      * This subsytem that controls the roller.
      */
-    public PositionMech(CANBus canBus, String name, int motorId, int followerId) {
+    public PositionMech(CANBus canBus, String name, int motorId) {
         this.name = name;
         motor = new TalonFX(motorId, canBus);
-        follower = followerId > 0 ? new TalonFX(followerId, canBus) : null;
 
         configs = new TalonFXConfiguration();
 
@@ -133,8 +132,6 @@ public class PositionMech extends SubsystemBase {
         {
             double pos = targetPosition;
             motor.setControl(positionVoltage.withPosition(pos));
-            if (follower != null)
-                follower.setControl(positionVoltage.withPosition(pos));
             System.out.println("setControl-periodic");
         }
 
@@ -221,17 +218,12 @@ public class PositionMech extends SubsystemBase {
 
         motor.setControl(positionVoltage.withPosition(pos));
 //        .withFeedForward(feedforward))
-        if (follower != null)
-            follower.setControl(positionVoltage.withPosition(pos));
-
         double p = motor.getPosition().getValue().in(Rotations);
         System.out.println("Position: " + pos + " / " + targetPosition  + " / " + p);
     }
 
     public void stop() {
         motor.setControl(brake);
-        if (follower != null)
-            follower.setControl(brake);
         reset();
     }
 
@@ -252,8 +244,8 @@ public class PositionMech extends SubsystemBase {
     public void setConfig()
     {
         /* Voltage-based velocity requires a velocity feed forward to account for the back-emf of the motor */
-        // configs.Slot0.kS = kS;//0.         01; // To account for friction, add 0.1 V of static feedforward
-        // configs.Slot0.kV = kV;//0.12; // Kraken X60 is a 500 kV motor, 500 rpm per V = 8.333 rps per V, 1/8.33 = 0.12 volts / rotation per second
+        configs.Slot0.kS = kS;//0.         01; // To account for friction, add 0.1 V of static feedforward
+        configs.Slot0.kV = kV;//0.12; // Kraken X60 is a 500 kV motor, 500 rpm per V = 8.333 rps per V, 1/8.33 = 0.12 volts / rotation per second
         configs.Slot0.kP = kP;//0.11; // An error of 1 rotation per second results in 0.11 V output
         configs.Slot0.kI = kI; // No output for integrated error
         configs.Slot0.kD = kD; // No output for error derivative
@@ -275,17 +267,10 @@ public class PositionMech extends SubsystemBase {
             status = motor.getConfigurator().apply(configs);
             if (status.isOK())
                 break;
-            // if (follower != null)
-            //     status = follower.getConfigurator().apply(configs);
-            if (status.isOK())
-                break;
         }
         if (!status.isOK()) {
             System.out.println("Could not apply configs, error code: " + status.toString());
         }
-        if (follower != null)
-            follower.setControl(new Follower(motor.getDeviceID(), MotorAlignmentValue.Opposed));
-
         motor.setPosition(0);
 
     }
