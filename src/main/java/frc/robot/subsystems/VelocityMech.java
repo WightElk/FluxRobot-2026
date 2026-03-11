@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import static edu.wpi.first.units.Units.*;
 import static edu.wpi.first.util.ErrorMessages.requireNonNullParam;
 
+import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.AutoLogOutput;
 
 import com.ctre.phoenix6.CANBus;
@@ -26,6 +27,7 @@ import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants;
 import frc.robot.PIDCtrl;
 
+@AutoLog
 public class VelocityMech extends SubsystemBase {
     private final String name;
     private final TalonFX motor;
@@ -43,15 +45,16 @@ public class VelocityMech extends SubsystemBase {
     private boolean targetVelocityChanged = false;
     private double velocityRPM = 0;
     private double targetVelocity = DefaultVelocityRPM;
-    @AutoLogOutput(key = "{name}/Velocity")
+//    @AutoLogOutput(key = "{name}/Velocity")
     private double velocity = 0;
 
     private final PIDCtrl pidCtrl;
+    //@AutoLogOutput(key = "{name}/pid")
     private final PIDController pidController;
 
     private double timeDelta = Constants.TimePeriod;
 
-    public static final double DefaultVelocityRPM = 500.0;
+    public static final double DefaultVelocityRPM = 100.0;
     public static final double MaxMotorRPM = 6000;
 
         // configs.Slot0.kS = kS;//0.01; 
@@ -60,8 +63,8 @@ public class VelocityMech extends SubsystemBase {
     public static final double DefaultKP = 0.11;  // An error of 1 rotation per second results in 0.11 V output
     public static final double DefaultKD = 0.0;
     public static final double DefaultKI = 0.0;
-    public static final double DefaultKV = 0.0; // Kraken X60 is a 500 kV motor, 500 rpm per V = 8.333 rps per V, 1/8.33 = 0.12 volts / rotation per second
-    public static final double DefaultKS = 0.0; // To account for friction, add 0.1 V of static feedforward
+    public static final double DefaultKV = 0.12; // Kraken X60 is a 500 kV motor, 500 rpm per V = 8.333 rps per V, 1/8.33 = 0.12 volts / rotation per second
+    public static final double DefaultKS = 0.01; // To account for friction, add 0.1 V of static feedforward
     public static final double DefaultMaxOutput = 1.0;
     public static final double DefaultMinOutput = -1.0;
     public static final double DeltaRPM = 100;
@@ -108,6 +111,11 @@ public class VelocityMech extends SubsystemBase {
         pidCtrl = new PIDCtrl(kP, kD, kI, timeDelta);
     }
 
+    public void setTargetSpeed(double speed)
+    {
+        targetVelocity = speed;
+    }
+
     @Override
     public void periodic() {
         if (running && targetVelocityChanged)
@@ -122,11 +130,12 @@ public class VelocityMech extends SubsystemBase {
         {
             String prefix = name + "/";
             SmartDashboard.putNumber(prefix + "RPM", vel);
+            System.out.println("RPM: " + velocity + " / " + vel + " / " + velocityRPM);
             velocity = vel;
         }
         double target = direction == Constants.Backward ? -targetVelocity : targetVelocity;
         atSpeed = Math.abs(vel - target) <= rpmDelta;
-        //System.out.println("RPM: " + velocityRPM + " / " + vel);
+
     }
 
     public boolean atSetPoint() {
@@ -186,20 +195,21 @@ public class VelocityMech extends SubsystemBase {
 //        .withFeedForward(feedforward))
         running = true;
         double v = motor.getVelocity().getValue().magnitude();
-        System.out.println("Run: " + velocityRPM + " / " + v);
+        System.out.println("Run: " + v + " / " + velocityRPM);
     }
 
     public void setSpeed(double speed) {
         targetVelocityChanged = true;
+        speed = targetVelocity;
 
-        speed = -speed;
-        double rps = speed  * Constants.ShooterConstants.MaxMotorRPS;
+        speed = direction == Constants.Backward ? -speed : speed;
+        //double rps = speed  * Constants.ShooterConstants.MaxMotorRPS;
 
         motor.setControl(velocityVoltage.withVelocity(speed));
 //        .withFeedForward(feedforward))
 //        motor.setControl(velocityTorque.withVelocity(speed * Constants.MaxMotorRPS));
         double v = motor.getVelocity().getValue().magnitude();
-        System.out.println("SetSpeed: " + speed + " / " + rps + " / " + v);
+        System.out.println("SetSpeed: " + speed + " / " + v);
     }
 
     public void stop() {
@@ -285,6 +295,7 @@ public class VelocityMech extends SubsystemBase {
         SmartDashboard.setPersistent(prefix + "MaxOutput");
         SmartDashboard.setPersistent(prefix + "MinOutput");
         SmartDashboard.setPersistent(prefix + "RpmDelta");
+        System.out.println("putParams: " + name);
     }
 
     public void getParams() {
@@ -310,5 +321,6 @@ public class VelocityMech extends SubsystemBase {
         }
 
         pidCtrl.pid(kP, kD, kI);
+        System.out.println("getParams: " + name);
     }
 }

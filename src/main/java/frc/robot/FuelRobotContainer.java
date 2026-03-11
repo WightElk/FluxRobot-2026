@@ -47,7 +47,7 @@ public class FuelRobotContainer extends RobotContainer {
   private final CANBus canBus = new CANBus(RobotConfig.FuelRobot.systemCANBus);
   private final VelocityMech intake;
   private final PositionMech tilter;
-  private final VelocitySubsystem indexer;
+  private final VelocityMech indexer;
   private final VelocityMech feeder;
 //  private final ShooterSubsystem shooter;
   private final VelocitySubsystem shooter;
@@ -75,8 +75,8 @@ public class FuelRobotContainer extends RobotContainer {
 //  shooter = new ShooterSubsystem(canBus)
     intake = new VelocityMech(canBus, "Intake", IntakeConstants.MotorId);
     tilter = new PositionMech(canBus, "Tilter", IntakeConstants.TiltMotorId);
-    indexer = new VelocitySubsystem(canBus, "Indexer", IndexerConstants.MotorId, -1);
-    feeder = new VelocityMech(canBus, "Indexer", IndexerConstants.FollowerId);
+    indexer = new VelocityMech(canBus, "Indexer", IndexerConstants.IndexerId);
+    feeder = new VelocityMech(canBus, "Feeder", IndexerConstants.FeederId);
     shooter = new VelocitySubsystem(canBus, "Shooter", ShooterConstants.RightMotorId, ShooterConstants.LeftMotorId);//ShooterConstants.LeftMotorId
     hood = new PositionMech(canBus, "Hood", ShooterConstants.HoodMotorId);
 
@@ -110,7 +110,8 @@ public class FuelRobotContainer extends RobotContainer {
     // Intake control
     // Right trigger - Intake IN with variable speed
     // Right bumper - Intake OUT
-    controller.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(new IntakeCommand(intake));
+    //TODO Back
+    controller.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(new IntakeCommand(intake, IntakeConstants.InSpeed));
 
 //    controller.rightTrigger(OperatorConstants.TriggerThreshold).and(controller.rightBumper().negate()).whileTrue(new RunCommand(() -> intake.run(), intake));
 
@@ -120,8 +121,8 @@ public class FuelRobotContainer extends RobotContainer {
     // Indexer control
     // Left trigger - Indexer IN with variable speed
     // Left bumper - Indexer OUT
-    controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new IndexerCommand(indexer, Constants.Backward));
-    controller.leftBumper().whileTrue(new FeederCommand(feeder, Constants.Forward));
+    controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new FeederCommand(feeder, IndexerConstants.FeederSpeed, Constants.Forward));
+    controller.leftBumper().whileTrue(new IndexerCommand(indexer, IndexerConstants.InSpeed, Constants.Backward));
 
     // controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new RunCommand(() -> indexer.run(Constants.Forward), indexer));
     // controller.leftBumper().whileTrue(new RunCommand(() -> indexer.run(Constants.Backward), indexer));
@@ -133,16 +134,18 @@ public class FuelRobotContainer extends RobotContainer {
 //    controller.rightTrigger(OperatorConstants.TriggerThreshold).and(controller.rightBumper()).whileTrue(new RawShooterCommand(shooter, () -> (controller.getRightTriggerAxis() )));
 
 //toggleOnTrue
-    controller.a().onTrue(new ShootCommand(shooter));
+    controller.a().onTrue(new ShootCommand(shooter, ShooterConstants.Speed));
     controller.b().onTrue(new StopShootCommand(shooter));
 
-    controller.povDown().whileTrue(new RunCommand(() -> hood.jogDown(), hood));
-    controller.povUp().whileTrue(new RunCommand(() -> hood.jogUp(), hood));
+    controller.povUp().whileTrue(new RunCommand(() -> hood.jogUp(ShooterConstants.HoodStep), hood));
+    controller.povDown().whileTrue(new RunCommand(() -> hood.jogDown(ShooterConstants.HoodStep), hood));
 
-    controller.povRight().whileTrue(new RunCommand(() -> tilter.jogDown(), tilter));
-    controller.povLeft().whileTrue(new RunCommand(() -> tilter.jogUp(), tilter));
+    // Push out
+    controller.povLeft().whileTrue(new RunCommand(() -> tilter.jogDown(IntakeConstants.TiltStep), tilter));
+    // Pull in
+    controller.povRight().whileTrue(new RunCommand(() -> tilter.jogUp(IntakeConstants.TiltStep), tilter));
 
-    controller.povUp().whileTrue(new RunCommand(() -> hood.setPosition(0), hood));
+    //controller.povUp().whileTrue(new RunCommand(() -> hood.setPosition(0), hood));
     // controller.povLeft().or(controller.povRight()).whileTrue(new RunCommand(() -> elevator.stop(), elevator));
 
 // InstantCommand
@@ -220,12 +223,15 @@ public class FuelRobotContainer extends RobotContainer {
 
   protected void initAutoCommands()
   {
-    Command cmd = new PathPlannerAuto(Constants.AutoConstants.commands[0][1]);
-    autoCommandChooser.setDefaultOption(Constants.AutoConstants.commands[0][0], cmd);
+    if (Constants.AutoConstants.commands.length > 0)
+    {
+      Command cmd = new PathPlannerAuto(Constants.AutoConstants.commands[0][1]);
+      autoCommandChooser.setDefaultOption(Constants.AutoConstants.commands[0][0], cmd);
+    }
 
     for (int i = 1; i < Constants.AutoConstants.commands.length; ++i)
     {
-      cmd = new PathPlannerAuto(Constants.AutoConstants.commands[i][1]);
+      Command cmd = new PathPlannerAuto(Constants.AutoConstants.commands[i][1]);
       autoCommandChooser.addOption(Constants.AutoConstants.commands[i][0], cmd);
     }
   }
@@ -244,10 +250,10 @@ public class FuelRobotContainer extends RobotContainer {
 
     // Create the path using the waypoints created above
     PathPlannerPath path = new PathPlannerPath(
-      waypoints,
-      constraints,
-      null, // The ideal starting state, this is only relevant for pre-planned paths, so can be null for on-the-fly paths.
-      new GoalEndState(0.0, Rotation2d.fromDegrees(-90)) // Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
+            waypoints,
+            constraints,
+            null, // The ideal starting state, this is only relevant for pre-planned paths, so can be null for on-the-fly paths.
+            new GoalEndState(0.0, Rotation2d.fromDegrees(-90)) // Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
     );
 
     // Prevent the path from being flipped if the coordinates are already correct

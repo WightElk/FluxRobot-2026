@@ -182,18 +182,18 @@ public class PositionMech extends SubsystemBase {
         atTarget = false;
     }
 
-    public void jogUp()
+    public void jogUp(double step)
     {
         double pos = getPosition();
-        pos += jogStep;
+        pos += step;
         targetPosition = pos;
         motor.setControl(positionVoltage.withPosition(pos));
     }
     
-    public void jogDown()
+    public void jogDown(double step)
     {
         double pos = getPosition();
-        pos -= jogStep;
+        pos -= step;
         targetPosition = pos;
         motor.setControl(positionVoltage.withPosition(pos));
     }

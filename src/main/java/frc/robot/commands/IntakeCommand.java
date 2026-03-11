@@ -19,8 +19,9 @@ public class IntakeCommand extends Command {
    *
    * @param intake The subsystem used by this command.
    */
-  public IntakeCommand(VelocityMech intake) {
+  public IntakeCommand(VelocityMech intake, double speed) {
     this.intake = intake;
+    intake.setTargetSpeed(speed);
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(intake);
   }
@@ -29,12 +30,13 @@ public class IntakeCommand extends Command {
   @Override
   public void initialize() {
     intake.reset();
+    intake.setSpeed(IntakeConstants.InSpeed);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    intake.setSpeed(IntakeConstants.InSpeed);
+    //intake.setSpeed(IntakeConstants.InSpeed);
 //    intake.run(Constants.Backward);
   }
 

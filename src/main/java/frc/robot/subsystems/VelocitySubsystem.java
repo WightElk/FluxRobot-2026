@@ -55,7 +55,7 @@ public class VelocitySubsystem extends SubsystemBase {
 
     // private final RelativeEncoder upEncoder;
 
-    private int direction = Constants.Forward;
+    private int direction = Constants.Backward;
     private boolean running = false;
     private boolean targetVelocityChanged = false;
     private double velocityRPM = 0;
@@ -68,7 +68,7 @@ public class VelocitySubsystem extends SubsystemBase {
 
     private double timeDelta = Constants.TimePeriod;
 
-    public static final double DefaultVelocityRPM = 500.0;
+    public static final double DefaultVelocityRPM = 3000.0;
     public static final double MaxMotorRPM = 6000;
 
         // configs.Slot0.kS = kS;//0.01; 
@@ -215,15 +215,17 @@ public class VelocitySubsystem extends SubsystemBase {
 
     public void setSpeed(double speed) {
         targetVelocityChanged = true;
+        running = true;
+        speed = -targetVelocity;
 
-        speed = -speed;
-        double rps = speed  * Constants.ShooterConstants.MaxMotorRPS;
+        //speed = -speed;
+        double rps = speed;//  * Constants.ShooterConstants.MaxMotorRPS;
 
-        motor.setControl(velocityVoltage.withVelocity(speed));
+        //motor.setControl(velocityVoltage.withVelocity(speed));
 //        .withFeedForward(feedforward))
 //        motor.setControl(velocityTorque.withVelocity(speed * Constants.MaxMotorRPS));
         if (follower != null)
-            follower.setControl(velocityVoltage.withVelocity(- speed));
+            follower.setControl(velocityVoltage.withVelocity(speed));
         double v = motor.getVelocity().getValue().magnitude();
         System.out.println("SetSpeed: " + speed + " / " + rps + " / " + v);
     }
@@ -258,7 +260,7 @@ public class VelocitySubsystem extends SubsystemBase {
         configs.Slot0.kI = kI; // No output for integrated error
         configs.Slot0.kD = kD; // No output for error derivative
         // Peak output of 8 volts
-        configs.Voltage.withPeakForwardVoltage(Volts.of(8)).withPeakReverseVoltage(Volts.of(-8));
+        configs.Voltage.withPeakForwardVoltage(Volts.of(12)).withPeakReverseVoltage(Volts.of(-12));
 
         /* Torque-based velocity does not require a velocity feed forward, as torque will accelerate the rotor up to the desired velocity by itself */
         // configs.Slot1.kS = 2.5; // To account for friction, add 2.5 A of static feedforward

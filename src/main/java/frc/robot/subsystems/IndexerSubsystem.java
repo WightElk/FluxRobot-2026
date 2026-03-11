@@ -76,8 +76,8 @@ public class IndexerSubsystem extends SubsystemBase {
         timeDelta = 0.02;
         controlValue = 0;
 
-        motor = new TalonFX(Constants.IndexerConstants.MotorId, canBus);
-        int followerId = Constants.IndexerConstants.FollowerId;
+        motor = new TalonFX(Constants.IndexerConstants.IndexerId, canBus);
+        int followerId = Constants.IndexerConstants.FeederId;
         follower = followerId > 0 ? new TalonFX(followerId, canBus) : null;
         // leftFeeder = new TalonFX(Constants.IndexerConstants.LeftFeederId, canBus);
         // rightFeeder = new TalonFX(Constants.IndexerConstants.RightFeederId, canBus);

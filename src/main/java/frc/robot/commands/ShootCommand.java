@@ -20,8 +20,9 @@ public class ShootCommand extends Command {
    *
    * @param roller The subsystem used by this command.
    */
-  public ShootCommand(VelocitySubsystem shooter) {
+  public ShootCommand(VelocitySubsystem shooter, double speed) {
     this.shooter = shooter;
+    //shooter.setTargetSpeed(speed);
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(shooter);
   }
@@ -29,14 +30,12 @@ public class ShootCommand extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    System.out.println("ShootCommand-initialize");
     shooter.setSpeed(ShooterConstants.Speed);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-   System.out.println("ShootCommand-execute");
     // shooter.setSpeed(ShooterConstants.Speed);
 
         // if (running && targetVelocityChanged)
@@ -64,14 +63,12 @@ public class ShootCommand extends Command {
   // Called once the command ends or is interrupted. This ensures the roller is not running when not intented.
   @Override
   public void end(boolean interrupted) {
-    System.out.println("ShootCommand-end");
     //shooter.stop();
   }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    System.out.println("ShootCommand-isFinished");
     return false;
   }
 

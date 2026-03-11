@@ -9,21 +9,23 @@ import frc.robot.Constants.IndexerConstants;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.subsystems.IndexerSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.VelocityMech;
 import frc.robot.subsystems.VelocitySubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 
 /** A command to take Algae into the robot. */
 public class IndexerCommand extends Command {
-  private final VelocitySubsystem indexer;
+  private final VelocityMech indexer;
   private final int direction;
   /**
    * Rolls Algae into the intake.
    *
    * @param roller The subsystem used by this command.
    */
-  public IndexerCommand(VelocitySubsystem indexer, int dir) {
+  public IndexerCommand(VelocityMech indexer, double speed, int dir) {
     this.indexer = indexer;
     direction = dir;
+    indexer.setTargetSpeed(speed);
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(indexer);
   }

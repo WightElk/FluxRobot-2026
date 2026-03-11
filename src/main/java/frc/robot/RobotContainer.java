@@ -230,12 +230,12 @@ public class RobotContainer {
         
         return drive.withVelocityX(
             // Drive forward with negative Y (forward)
-            - maxSpeed * sensitivityPos.transfer(-driverController.getLeftY())
+            - maxSpeed * sensitivityPos.transfer(driverController.getLeftY())
            //-MaxSpeed * driverController.getLeftY()
           )
           .withVelocityY(
             // Drive left with negative X (left)
-            - maxSpeed * sensitivityPos.transfer(-driverController.getLeftX())
+            - maxSpeed * sensitivityPos.transfer(driverController.getLeftX())
             //-MaxSpeed * driverController.getLeftX()
           )
           .withRotationalRate(

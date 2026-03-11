@@ -22,9 +22,10 @@ public class FeederCommand extends Command {
    *
    * @param roller The subsystem used by this command.
    */
-  public FeederCommand(VelocityMech feeder, int dir) {
+  public FeederCommand(VelocityMech feeder, double speed, int dir) {
     this.feeder = feeder;
     direction = dir;
+    feeder.setTargetSpeed(speed);
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(feeder);
   }
@@ -36,7 +37,7 @@ public class FeederCommand extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    double speed = IndexerConstants.InSpeed;// * Constants.MaxMotorRPS;
+    double speed = IndexerConstants.FeederSpeed;// * Constants.MaxMotorRPS;
     if (direction != Constants.Forward)
       speed = -speed;
     feeder.setSpeed(speed);
