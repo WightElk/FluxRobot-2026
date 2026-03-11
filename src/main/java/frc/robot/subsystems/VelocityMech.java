@@ -8,6 +8,7 @@ import org.littletonrobotics.junction.AutoLogOutput;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusCode;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.NeutralOut;
@@ -247,7 +248,8 @@ public class VelocityMech extends SubsystemBase {
         configs.Slot0.kI = kI; // No output for integrated error
         configs.Slot0.kD = kD; // No output for error derivative
         // Peak output of 8 volts
-        configs.Voltage.withPeakForwardVoltage(Volts.of(8)).withPeakReverseVoltage(Volts.of(-8));
+        configs.Voltage.withPeakForwardVoltage(Volts.of(Constants.VelocityPeakVoltage)).withPeakReverseVoltage(Volts.of(-Constants.VelocityPeakVoltage));
+        configs.withCurrentLimits(new CurrentLimitsConfigs().withSupplyCurrentLimit(Amps.of(Constants.VelocityCurrentLimit)).withSupplyCurrentLimitEnable(true));
 
         /* Torque-based velocity does not require a velocity feed forward, as torque will accelerate the rotor up to the desired velocity by itself */
         // configs.Slot1.kS = 2.5; // To account for friction, add 2.5 A of static feedforward

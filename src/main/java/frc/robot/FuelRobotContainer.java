@@ -4,11 +4,8 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.CANBus;
-import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.pathplanner.lib.config.PIDConstants;
-import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -21,9 +18,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RunCommand;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.IndexerConstants;
 import frc.robot.Constants.IntakeConstants;
@@ -33,7 +28,6 @@ import frc.robot.subsystems.VelocityMech;
 import frc.robot.subsystems.VelocitySubsystem;
 import frc.robot.subsystems.PositionMech;
 import frc.robot.autos.DriveForwardAuto;
-import frc.robot.commands.Autos;
 import frc.robot.commands.FeederCommand;
 import frc.robot.commands.IndexerCommand;
 import frc.robot.commands.IntakeCommand;
@@ -49,7 +43,6 @@ public class FuelRobotContainer extends RobotContainer {
   private final PositionMech tilter;
   private final VelocityMech indexer;
   private final VelocityMech feeder;
-//  private final ShooterSubsystem shooter;
   private final VelocitySubsystem shooter;
   private final PositionMech hood;
 //  private final Lights lights = new Lights(RobotConfig.FuelRobot.systemCANBus);
@@ -58,21 +51,16 @@ public class FuelRobotContainer extends RobotContainer {
     new CommandXboxController(OperatorConstants.OperatorControllerPort);
 
     public final DriveForwardAuto autoDriveForward = new DriveForwardAuto(drivetrain);
-    //  public final DrivePathAuto autoDriveCommand = new DrivePathAuto(drivetrain);
-    //public final DriveToPoseCommand autoDriveCommand;
-
+    
     private SendableChooser<Command> autoCommandChooser;
 
   public FuelRobotContainer() {
     super(RobotConfig.FuelRobot, false);
 
     int connectedJoystickCount = connectedJoystickCount();
-    System.out.println("connectedJoystickCount " + connectedJoystickCount);
+//    System.out.println("connectedJoystickCount " + connectedJoystickCount);
     useTwoControllers = connectedJoystickCount == 2;
 
-    // intake = new IntakeSubsystem(IntakeConstants.MotorId, canBus);
-    // indexer = new IndexerSubsystem(canBus);
-//  shooter = new ShooterSubsystem(canBus)
     intake = new VelocityMech(canBus, "Intake", IntakeConstants.MotorId);
     tilter = new PositionMech(canBus, "Tilter", IntakeConstants.TiltMotorId);
     indexer = new VelocityMech(canBus, "Indexer", IndexerConstants.IndexerId);
@@ -93,63 +81,46 @@ public class FuelRobotContainer extends RobotContainer {
   }
 
   public void initRobot() {
-    //TODO
-//    FollowPathCommand.warmupCommand().schedule();
+    FollowPathCommand.warmupCommand().schedule();
   }
 
   @Override
   protected void configureBindings() {
     super.configureBindings();
 
-//    SmartDashboard.putBoolean("Use 2 controllers", OperatorConstants.UseTwoControllers);
-    // useTwoControllers = SmartDashboard.getBoolean("2 controllers", OperatorConstants.UseTwoControllers);
-    // useTwoControllers = false;
-
     CommandXboxController controller = useTwoControllers ? operatorController : driverController;
 
     // Intake control
-    // Right trigger - Intake IN with variable speed
-    // Right bumper - Intake OUT
-    //TODO Back
+    // Right Trigger - Run intake rolller
     controller.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(new IntakeCommand(intake, IntakeConstants.InSpeed));
 
-//    controller.rightTrigger(OperatorConstants.TriggerThreshold).and(controller.rightBumper().negate()).whileTrue(new RunCommand(() -> intake.run(), intake));
+    // Intake Tilt control
+    // Pov Left - Push out intake
+    // Pov Down - Pull in intake
+    controller.povLeft().whileTrue(new RunCommand(() -> tilter.jogDown(IntakeConstants.TiltStep), tilter));
+    controller.povRight().whileTrue(new RunCommand(() -> tilter.jogUp(IntakeConstants.TiltStep), tilter));
 
-    //    controller.rightBumper().whileTrue(new RawIntakeCommand(intake, () -> - IntakeConstants.OutSpeed));
-    // controller.povLeft().or(controller.povRight()).whileTrue(new RunCommand(() -> elevator.stop(), elevator));
+    // Feeder control
+    // Left Trigger - Run Feeder and Shoot
+    controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new FeederCommand(feeder, IndexerConstants.FeederSpeed, Constants.Forward));
 
     // Indexer control
-    // Left trigger - Indexer IN with variable speed
-    // Left bumper - Indexer OUT
-    controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new FeederCommand(feeder, IndexerConstants.FeederSpeed, Constants.Forward));
+    // Left Bumper - Run Indexer
     controller.leftBumper().whileTrue(new IndexerCommand(indexer, IndexerConstants.InSpeed, Constants.Backward));
-
-    // controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new RunCommand(() -> indexer.run(Constants.Forward), indexer));
-    // controller.leftBumper().whileTrue(new RunCommand(() -> indexer.run(Constants.Backward), indexer));
 
     // Shooter control
     // A - Shooter ON
     // B - Shooter OFF
-//      controller.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(new RawShooterCommand(shooter, () -> controller.getLeftTriggerAxis() - OperatorConstants.TriggerThreshold));
-//    controller.rightTrigger(OperatorConstants.TriggerThreshold).and(controller.rightBumper()).whileTrue(new RawShooterCommand(shooter, () -> (controller.getRightTriggerAxis() )));
-
-//toggleOnTrue
     controller.a().onTrue(new ShootCommand(shooter, ShooterConstants.Speed));
     controller.b().onTrue(new StopShootCommand(shooter));
 
+    // Shooter Hood
+    // Pov Up - Hood Up
+    // Pov Down - Hood Down
     controller.povUp().whileTrue(new RunCommand(() -> hood.jogUp(ShooterConstants.HoodStep), hood));
     controller.povDown().whileTrue(new RunCommand(() -> hood.jogDown(ShooterConstants.HoodStep), hood));
 
-    // Push out
-    controller.povLeft().whileTrue(new RunCommand(() -> tilter.jogDown(IntakeConstants.TiltStep), tilter));
-    // Pull in
-    controller.povRight().whileTrue(new RunCommand(() -> tilter.jogUp(IntakeConstants.TiltStep), tilter));
-
-    //controller.povUp().whileTrue(new RunCommand(() -> hood.setPosition(0), hood));
-    // controller.povLeft().or(controller.povRight()).whileTrue(new RunCommand(() -> elevator.stop(), elevator));
-
-// InstantCommand
-// StartEndCommand
+    // Fetch parameters
     controller.start().toggleOnTrue(new Command() {
         @Override public void initialize() {
           fetchParameters();    
@@ -158,6 +129,7 @@ public class FuelRobotContainer extends RobotContainer {
           return true;
         }
     });
+    // Update parameters
     controller.back().toggleOnTrue(new Command() {
         @Override public void initialize() {
           storeParameters();
@@ -178,12 +150,9 @@ public class FuelRobotContainer extends RobotContainer {
     // autoCommandChooser = AutoBuilder.buildAutoChooser("My Default Auto");
 
 //    return autoCommandChooser.getSelected();
-
 //    return Autos.exampleAuto(exampleSubsystem);
-
     // The selected command will be run in autonomous
     return autoDriveForward;
-//    return autoDriveCommand.andThen((new RunCommand(() -> elevator.moveToLevel1(), elevator)).withTimeout(2.0)).andThen(new RawTrayCommand(tray, () -> -TrayConstants.Speed));
   }
 
   public void storeParameters()

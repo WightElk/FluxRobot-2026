@@ -48,6 +48,11 @@ public final class Constants {
   public static final double MaxMotorRPM = 6000.0;  //6380
   public static final double MaxMotorRPS = 0.5 * MaxMotorRPM / 60.0;
 
+  public static final double VelocityPeakVoltage = 11.0;  // 8
+  public static final double PositionPeakVoltage = 11.0;
+  public static final double VelocityCurrentLimit = 40.0;
+  public static final double PositionCurrentLimit = 40.0;
+
   public static final class DriveConstants {
     public static final double AutoModeSpeed = 0.8;  // Move backward to driver station
     public static final double AutoModeDriveTime = 2.0;  // In seconds

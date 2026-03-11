@@ -9,6 +9,7 @@ import com.revrobotics.spark.SparkMaxAlternateEncoder;
 import com.revrobotics.spark.SparkRelativeEncoder;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusCode;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
@@ -250,7 +251,8 @@ public class PositionMech extends SubsystemBase {
         configs.Slot0.kI = kI; // No output for integrated error
         configs.Slot0.kD = kD; // No output for error derivative
         // Peak output of 8 volts
-        configs.Voltage.withPeakForwardVoltage(Volts.of(8)).withPeakReverseVoltage(Volts.of(-8));
+        configs.Voltage.withPeakForwardVoltage(Volts.of(Constants.PositionPeakVoltage)).withPeakReverseVoltage(Volts.of(-Constants.PositionPeakVoltage));
+        configs.withCurrentLimits(new CurrentLimitsConfigs().withSupplyCurrentLimit(Amps.of(Constants.PositionCurrentLimit)).withSupplyCurrentLimitEnable(true));
 
         /* Torque-based velocity does not require a velocity feed forward, as torque will accelerate the rotor up to the desired velocity by itself */
         // configs.Slot1.kS = 2.5; // To account for friction, add 2.5 A of static feedforward
