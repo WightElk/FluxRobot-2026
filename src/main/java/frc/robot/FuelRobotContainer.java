@@ -31,6 +31,7 @@ import frc.robot.autos.DriveForwardAuto;
 import frc.robot.commands.FeederCommand;
 import frc.robot.commands.IndexerCommand;
 import frc.robot.commands.IntakeCommand;
+import frc.robot.commands.RangeShootCmd;
 import frc.robot.commands.ShootCommand;
 import frc.robot.commands.StopShootCommand;
 
@@ -119,6 +120,8 @@ public class FuelRobotContainer extends RobotContainer {
     // Pov Down - Hood Down
     controller.povUp().whileTrue(new RunCommand(() -> hood.jogUp(ShooterConstants.HoodStep), hood));
     controller.povDown().whileTrue(new RunCommand(() -> hood.jogDown(ShooterConstants.HoodStep), hood));
+
+    controller.rightBumper().whileTrue(new RangeShootCmd(shooter, feeder, drivetrain::getPose));
 
     // Fetch parameters
     controller.start().toggleOnTrue(new Command() {
