@@ -76,7 +76,7 @@ public class DriveToPoseCommand extends Command {
       resetPIDControllers();
       Pose2d pose = goalPoseSupplier.get();
 
-      if (useAllianceColor && drivetrain.allianceColor == DriverStation.Alliance.Red) {
+      if (useAllianceColor && drivetrain.alliance == DriverStation.Alliance.Red) {
         Translation2d transformedTranslation = new Translation2d(pose.getX(), 8.0137 - pose.getY());
         Rotation2d transformedHeading = pose.getRotation().times(-1);
         pose = new Pose2d(transformedTranslation, transformedHeading);

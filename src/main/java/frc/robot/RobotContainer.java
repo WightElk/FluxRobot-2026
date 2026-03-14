@@ -69,12 +69,13 @@ public class RobotContainer {
     .withDriveRequestType(DriveRequestType.OpenLoopVoltage) // Use open-loop control for drive motors
     .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance);
 
-  private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
+  protected final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
   private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
   public final CommandSwerveDrivetrain drivetrain;
 
   private final VisionSubsystem vision;
+  private boolean visionEnabled = false;
 
   public AprilTagFieldLayout fieldLayout;
   public Pose3d fieldOrigin = new Pose3d();
@@ -114,8 +115,10 @@ public class RobotContainer {
 // /  public final CANBus kCANBus;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
-  public RobotContainer(RobotConfig config, boolean useVision)
+  public RobotContainer(RobotConfig config, boolean visionEnabled)
   {
+    this.visionEnabled = visionEnabled;
+
 //    kCANBus = new CANBus(config.driveCANBus, "./logs/example.hoot");
     DrivetrainConstants = new SwerveDrivetrainConstants()
       .withCANBusName(config.driveCANBus)
@@ -128,7 +131,7 @@ public class RobotContainer {
     // /edu/wpi/first/apriltag/2025-reefscape-andymark.json
     //String path = Filesystem.getDeployDirectory().getPath() + AprilTagFields.k2025ReefscapeAndyMark.m_resourceFile;
     String path = Filesystem.getDeployDirectory().getPath() + "/" +  Constants.fieldLayoutFile;
-    if (useVision) {
+    if (visionEnabled) {
       try {
           fieldLayout = new AprilTagFieldLayout(path);
           fieldLength = fieldLayout.getFieldLength();
@@ -141,7 +144,7 @@ public class RobotContainer {
     }
 
     // Single camera vision for AprilTag detection
-    vision = useVision ? new VisionSubsystem(VisionConstants.CAMERA_NAME, VisionConstants.CameraBackName, fieldLayout, drivetrain::addVisionMeasurement) : null;
+    vision = visionEnabled ? new VisionSubsystem(VisionConstants.CAMERA_NAME, VisionConstants.CameraBackName, fieldLayout, drivetrain::addVisionMeasurement) : null;
 
     SmartDashboard.putNumber("Start_X", xStartPos);
     SmartDashboard.putNumber("Middle_X", xMiddlePos);
@@ -226,7 +229,7 @@ public class RobotContainer {
         SmartDashboard.putNumber("Joystick_OutY", -sensitivityPos.transfer(driverController.getLeftX()));
         
         //new InstantCommand(() -> drivetrain.resetOdometry(move11.getInitialPose()))
-        double maxSpeed = drivetrain.allianceColor == Alliance.Red ? -MaxSpeed : MaxSpeed;
+        double maxSpeed = drivetrain.alliance == Alliance.Red ? -MaxSpeed : MaxSpeed;
         
         return drive.withVelocityX(
             // Drive forward with negative Y (forward)
@@ -281,11 +284,12 @@ public class RobotContainer {
     driverController.start().and(driverController.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
     // // reset the field-centric heading on left bumper press
-    driverController.rightBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+    driverController.back().and(driverController.rightBumper()).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
   
     // Vision control bindings (driver controller only)
     // Left bumper: Drive to AprilTag (vision-guided alignment)
-    driverController.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new DriveToTag(vision, drivetrain));
+    if (visionEnabled)
+      driverController.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new DriveToTag(vision, drivetrain));
 
     Supplier<Pose2d> goalPoseSupplier = () -> new Pose2d(Units.feetToMeters(5), Units.feetToMeters(3), Rotation2d.fromDegrees(90));
     Supplier<Pose2d> poseProvider = drivetrain::getPose;
@@ -293,9 +297,6 @@ public class RobotContainer {
   //  driverController.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new AlignedDriveToTag(vision, drivetrain, fieldLayout, VisionConstants.Direction.Left,goalPoseSupplier, poseProvider));
   //  driverController.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(new AlignedDriveToTag(vision, drivetrain, fieldLayout, VisionConstants.Direction.Right, goalPoseSupplier, poseProvider));
 //    driverController.y().whileTrue(new AlignedDriveToTag(vision, drivetrain, fieldLayout, VisionConstants.Direction.Center, goalPoseSupplier, poseProvider));
-
-    // if (useTwoControllers)
-    //   driverController.leftBumper().whileTrue(new DriveToTag(vision, drivetrain));
   }
 
   /**

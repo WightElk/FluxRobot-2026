@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.CANBus;
+import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.commands.PathPlannerAuto;
@@ -19,22 +20,28 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.IndexerConstants;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.ShooterConstants;
-import frc.robot.subsystems.VelocityMech;
+import frc.robot.subsystems.VelocityMech2;
 import frc.robot.subsystems.VelocitySubsystem;
 import frc.robot.subsystems.PositionMech;
+import frc.robot.subsystems.VelocityMech;
 import frc.robot.autos.DriveForwardAuto;
 import frc.robot.commands.FeederCommand;
 import frc.robot.commands.IndexerCommand;
 import frc.robot.commands.IntakeCommand;
 import frc.robot.commands.RangeShootCmd;
+import frc.robot.commands.SetShooterRangeCmd;
 import frc.robot.commands.ShootCommand;
+import frc.robot.commands.ShootToHubCmd;
 import frc.robot.commands.StopShootCommand;
+import frc.robot.commands.TiltIntakeCmd;
+import frc.robot.commands.VelocityCmd;
 
 /**
  * Robot with Fuel Shooter
@@ -45,8 +52,9 @@ public class FuelRobotContainer extends RobotContainer {
   private final PositionMech tilter;
   private final VelocityMech indexer;
   private final VelocityMech feeder;
-  private final VelocitySubsystem shooter;
+  private final VelocityMech2 shooter;
   private final PositionMech hood;
+  private final RangeTable rangeTable;
 //  private final Lights lights = new Lights(RobotConfig.FuelRobot.systemCANBus);
 
   private final CommandXboxController operatorController =
@@ -67,8 +75,10 @@ public class FuelRobotContainer extends RobotContainer {
     tilter = new PositionMech(canBus, "Tilter", IntakeConstants.TiltMotorId);
     indexer = new VelocityMech(canBus, "Indexer", IndexerConstants.IndexerId);
     feeder = new VelocityMech(canBus, "Feeder", IndexerConstants.FeederId);
-    shooter = new VelocitySubsystem(canBus, "Shooter", ShooterConstants.RightMotorId, ShooterConstants.LeftMotorId);//ShooterConstants.LeftMotorId
+    shooter = new VelocityMech2(canBus, "Shooter", ShooterConstants.RightMotorId, ShooterConstants.LeftMotorId);
     hood = new PositionMech(canBus, "Hood", ShooterConstants.HoodMotorId);
+
+    rangeTable = new RangeTable();
 
     Supplier<Pose2d> goalPoseSupplier = () -> new Pose2d(Units.feetToMeters(5), Units.feetToMeters(3), Rotation2d.fromDegrees(90));
 //    Supplier<Pose2d> poseProvider = drivetrain::getPose;
@@ -95,40 +105,104 @@ public class FuelRobotContainer extends RobotContainer {
 
     CommandXboxController controller = useTwoControllers ? operatorController : driverController;
 
-    // Intake control
-    // Right Trigger - Run intake rolller
-    controller.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(new IntakeCommand(intake, IntakeConstants.InSpeed));
+    if (useTwoControllers)
+    {
+      // X - Keep robot in place
+      driverController.x().whileTrue(drivetrain.applyRequest(() -> brake));      
 
-    // Intake Tilt control
-    // Pov Left - Push out intake
-    // Pov Down - Pull in intake
-    controller.povLeft().whileTrue(new RunCommand(() -> tilter.jogDown(IntakeConstants.TiltStep), tilter));
-    controller.povRight().whileTrue(new RunCommand(() -> tilter.jogUp(IntakeConstants.TiltStep), tilter));
+      driverController.y().onTrue(Commands.runOnce(drivetrain::resetGyro));
 
-    // Feeder control
-    // Left Trigger - Run Feeder and Shoot
-    controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new FeederCommand(feeder, IndexerConstants.FeederSpeed, Constants.Forward));
+      // Intake control
+      // Right Trigger - Run intake rolller IN
+      // Right Bumper - Run intake rolller OUT
+      driverController.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(new VelocityCmd(intake, () -> IntakeConstants.InSpeed, Constants.Backward));
+      driverController.rightBumper().whileTrue(new VelocityCmd(intake, () -> IntakeConstants.OutSpeed, Constants.Forward));
 
-    // Indexer control
-    // Left Bumper - Run Indexer
-    controller.leftBumper().whileTrue(new IndexerCommand(indexer, IndexerConstants.InSpeed, Constants.Backward));
+      // Intake Tilt control
+      // A - Deploy intake
+      // B - Retract intake
+      driverController.a().onTrue(new TiltIntakeCmd(tilter, Constants.Forward));
+      driverController.b().onTrue(new TiltIntakeCmd(tilter, Constants.Backward));
+      // Pov Left - Push out intake
+      // Pov Down - Pull in intake
+      // driverController.povLeft().whileTrue(new RunCommand(() -> tilter.jogDown(IntakeConstants.TiltStep), tilter));
+      // driverController.povRight().whileTrue(new RunCommand(() -> tilter.jogUp(IntakeConstants.TiltStep), tilter));
 
-    // Shooter control
-    // A - Shooter ON
-    // B - Shooter OFF
-    controller.a().onTrue(new ShootCommand(shooter, ShooterConstants.Speed));
-    controller.b().onTrue(new StopShootCommand(shooter));
+      // Shooter and Feeder control
+      // Right Trigger - Run Feeder and Shoot
+      controller.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(new VelocityCmd(feeder, () -> IndexerConstants.FeederSpeed, Constants.Forward));
+      // Left Trigger  - Aim at Hub then Run Feeder and Shoot
+      controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new ShootToHubCmd(shooter, hood, feeder, drivetrain::getPose));
 
-    // Shooter Hood
-    // Pov Up - Hood Up
-    // Pov Down - Hood Down
-    controller.povUp().whileTrue(new RunCommand(() -> hood.jogUp(ShooterConstants.HoodStep), hood));
-    controller.povDown().whileTrue(new RunCommand(() -> hood.jogDown(ShooterConstants.HoodStep), hood));
+      // Shooter control
+      // A - Shooter ON
+      // B - Shooter OFF
+      controller.a().onTrue(new SetShooterRangeCmd(shooter, hood, rangeTable, ShooterConstants.ShortRange));
+      controller.b().onTrue(new SetShooterRangeCmd(shooter, hood, rangeTable, ShooterConstants.MidRange));
+      controller.y().onTrue(new SetShooterRangeCmd(shooter, hood, rangeTable, ShooterConstants.LongRange));
 
-    controller.rightBumper().whileTrue(new RangeShootCmd(shooter, hood, feeder, drivetrain::getPose));
+      // Shooter control
+      // Start - Toggles Shooter ON/OFF
+      controller.start().toggleOnTrue(new ShootCommand(shooter, () -> ShooterConstants.Speed, Constants.Forward));
+      controller.start().toggleOnFalse(Commands.runOnce(shooter::stop));
+
+      // Indexer control
+      // POV Right - Indexer rollers IN
+      // POV Left  - Indexer rollers OUT
+      controller.povRight().whileTrue(new VelocityCmd(indexer, () -> IndexerConstants.Speed, Constants.Backward));
+      controller.povLeft().whileTrue(new VelocityCmd(indexer, () -> IndexerConstants.Speed, Constants.Forward));
+
+      // Shooter Hood
+      // Pov Up - Hood Up
+      // Pov Down - Hood Down
+      controller.povUp().whileTrue(new RunCommand(() -> hood.jogUp(ShooterConstants.HoodStep), hood));
+      controller.povDown().whileTrue(new RunCommand(() -> hood.jogDown(ShooterConstants.HoodStep), hood));
+    }
+    else
+    {
+      controller.y().onTrue(Commands.runOnce(drivetrain::resetGyro));
+
+      // Intake control
+      // Right Trigger - Run intake rolller
+      controller.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(new VelocityCmd(intake, () -> IntakeConstants.InSpeed, Constants.Forward));
+
+      // Intake Tilt control
+      // Pov Left - Push out intake
+      // Pov Down - Pull in intake
+      controller.povLeft().whileTrue(new RunCommand(() -> tilter.jogDown(IntakeConstants.TiltStep), tilter));
+      controller.povRight().whileTrue(new RunCommand(() -> tilter.jogUp(IntakeConstants.TiltStep), tilter));
+
+      // Feeder control
+      // Left Trigger - Run Feeder and Shoot
+      controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new VelocityCmd(feeder, () -> IndexerConstants.FeederSpeed, Constants.Forward));
+
+      // Indexer control
+      // Left Bumper - Run Indexer
+      controller.leftBumper().whileTrue(new VelocityCmd(indexer, () -> IndexerConstants.Speed, Constants.Backward));
+
+      // Shooter control
+      // A - Shooter ON
+      // B - Shooter OFF
+      // controller.a().onTrue(new ShootCommand(shooter, () -> ShooterConstants.Speed, Constants.Forward));
+      // controller.b().onTrue(Commands.runOnce(shooter::stop));
+      controller.start().toggleOnTrue(new ShootCommand(shooter, () -> ShooterConstants.Speed, Constants.Forward));
+      controller.start().toggleOnFalse(Commands.runOnce(shooter::stop));
+
+      // Shooter Hood
+      // Pov Up - Hood Up
+      // Pov Down - Hood Down
+      controller.povUp().whileTrue(new RunCommand(() -> hood.jogUp(ShooterConstants.HoodStep), hood));
+      controller.povDown().whileTrue(new RunCommand(() -> hood.jogDown(ShooterConstants.HoodStep), hood));
+
+      controller.rightBumper().whileTrue(new RangeShootCmd(shooter, hood, feeder, rangeTable, drivetrain::getPose));
+
+      controller.a().onTrue(Commands.runOnce(drivetrain::resetGyro));
+
+      controller.b().onTrue(drivetrain.followPathCommand("Line1"));
+    }
 
     // Fetch parameters
-    controller.start().toggleOnTrue(new Command() {
+    controller.back().toggleOnTrue(new Command() {
         @Override public void initialize() {
           fetchParameters();    
         }
@@ -137,7 +211,7 @@ public class FuelRobotContainer extends RobotContainer {
         }
     });
     // Update parameters
-    controller.back().toggleOnTrue(new Command() {
+    controller.back().and(controller.a()).toggleOnTrue(new Command() {
         @Override public void initialize() {
           storeParameters();
         }

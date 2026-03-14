@@ -30,10 +30,12 @@ import frc.robot.Constants;
 import frc.robot.PIDCtrl;
 
 @AutoLog
-public class VelocityMech extends SubsystemBase {
+public class VelocityMech2 extends SubsystemBase {
     private final String name;
-    private final TalonFX motor;
-    private final TalonFXConfiguration config;
+    private final TalonFX motor1;
+    private final TalonFX motor2;
+    private final TalonFXConfiguration config1;
+    private final TalonFXConfiguration config2;
 
     private final VelocityVoltage velocityVoltage = new VelocityVoltage(0).withSlot(0);
     /* Start at velocity 0, use slot 1 */
@@ -43,12 +45,12 @@ public class VelocityMech extends SubsystemBase {
 
     // private final RelativeEncoder upEncoder;
 
-    private int direction = Constants.Forward;
+    private int direction = Constants.Backward;
     private boolean running = false;
     private boolean targetVelocityChanged = false;
     private double velocityRPM = 0;
     private double targetVelocity = DefaultVelocityRPM;
-//    @AutoLogOutput(key = "{name}/Velocity")
+    @AutoLogOutput(key = "{name}/Velocity")
     private double velocity = 0;
 
     private final PIDCtrl pidCtrl;
@@ -57,7 +59,7 @@ public class VelocityMech extends SubsystemBase {
 
     private double timeDelta = Constants.TimePeriod;
 
-    public static final double DefaultVelocityRPM = 100.0;
+    public static final double DefaultVelocityRPM = 3000.0;
     public static final double MaxMotorRPM = 6000;
 
         // configs.Slot0.kS = kS;//0.01; 
@@ -95,12 +97,14 @@ public class VelocityMech extends SubsystemBase {
     /**
      * This subsytem that controls the roller.
      */
-    public VelocityMech(CANBus canBus, String name, int motorId) {
+    public VelocityMech2(CANBus canBus, String name, int motorId1, int motorId2) {
         this.name = name;
-        motor = new TalonFX(motorId, canBus);
-        config = new TalonFXConfiguration();
+        motor1 = new TalonFX(motorId1, canBus);
+        motor2 = new TalonFX(motorId2, canBus);
+        config1 = new TalonFXConfiguration();
+        config2 = new TalonFXConfiguration();
 
-        FeedbackConfigs feedback = config.Feedback;
+        FeedbackConfigs feedback = config1.Feedback;
         // feedback.RotorToSensorRatio = 1.0;
         // feedback.SensorToMechanismRatio = 1.0;
 
@@ -123,22 +127,13 @@ public class VelocityMech extends SubsystemBase {
         targetVelocity = speed;
     }
 
-    public boolean atTarget(double speed)
-    {
-        return atSpeed;
-    }
-
-    public double getVelocity()
-    {
-        return motor.getVelocity().getValue().magnitude();
-    }
-
     @Override
     public void periodic() {
         if (running && targetVelocityChanged)
         {
             velocityRPM = direction == Constants.Backward ? -targetVelocity : targetVelocity;
-            motor.setControl(velocityVoltage.withVelocity(velocityRPM));
+            motor1.setControl(velocityVoltage.withVelocity(velocityRPM));
+            motor2.setControl(velocityVoltage.withVelocity(-velocityRPM));
             System.out.println("setControl-periodic " + velocityRPM);
         }
 
@@ -153,6 +148,10 @@ public class VelocityMech extends SubsystemBase {
         double target = direction == Constants.Backward ? -targetVelocity : targetVelocity;
         atSpeed = Math.abs(vel - target) <= rpmDelta;
 
+    }
+
+    public boolean atSetPoint() {
+        return atSpeed;
     }
 
     public void init(double rpm) {
@@ -202,12 +201,12 @@ public class VelocityMech extends SubsystemBase {
         if (setRpm != velocityRPM)
         {
             velocityRPM = setRpm;
-            motor.setControl(velocityVoltage.withVelocity(velocityRPM / 60.0));
+            motor1.setControl(velocityVoltage.withVelocity(velocityRPM / 60.0));
             System.out.println("setControl");
         }
 //        .withFeedForward(feedforward))
         running = true;
-        double v = motor.getVelocity().getValue().magnitude();
+        double v = motor1.getVelocity().getValue().magnitude();
         System.out.println("Run: " + v + " / " + velocityRPM);
     }
 
@@ -218,16 +217,23 @@ public class VelocityMech extends SubsystemBase {
         speed = direction == Constants.Backward ? -speed : speed;
         //double rps = speed  * Constants.ShooterConstants.MaxMotorRPS;
 
-        motor.setControl(velocityVoltage.withVelocity(speed));
+        motor1.setControl(velocityVoltage.withVelocity(speed));
+        motor1.setControl(velocityVoltage.withVelocity(speed));
 //        .withFeedForward(feedforward))
 //        motor.setControl(velocityTorque.withVelocity(speed * Constants.MaxMotorRPS));
-        double v = motor.getVelocity().getValue().magnitude();
+        double v = motor1.getVelocity().getValue().magnitude();
         System.out.println("SetSpeed: " + speed + " / " + v);
     }
 
     public void stop() {
-        motor.setControl(brake);
+        motor1.setControl(brake);
+        motor2.setControl(brake);
         reset();
+    }
+
+    public double getVelocity()
+    {
+        return motor1.getVelocity().getValue().magnitude();
     }
 
     protected double validateVelocity(double v)
@@ -240,14 +246,23 @@ public class VelocityMech extends SubsystemBase {
     public void setConfig()
     {
         /* Voltage-based velocity requires a velocity feed forward to account for the back-emf of the motor */
-        config.Slot0.kS = kS;//0.01; // To account for friction, add 0.1 V of static feedforward
-        config.Slot0.kV = kV;//0.12; // Kraken X60 is a 500 kV motor, 500 rpm per V = 8.333 rps per V, 1/8.33 = 0.12 volts / rotation per second
-        config.Slot0.kP = kP;//0.11; // An error of 1 rotation per second results in 0.11 V output
-        config.Slot0.kI = kI; // No output for integrated error
-        config.Slot0.kD = kD; // No output for error derivative
+        config1.Slot0.kS = kS;//0.01; // To account for friction, add 0.1 V of static feedforward
+        config1.Slot0.kV = kV;//0.12; // Kraken X60 is a 500 kV motor, 500 rpm per V = 8.333 rps per V, 1/8.33 = 0.12 volts / rotation per second
+        config1.Slot0.kP = kP;//0.11; // An error of 1 rotation per second results in 0.11 V output
+        config1.Slot0.kI = kI; // No output for integrated error
+        config1.Slot0.kD = kD; // No output for error derivative
         // Peak output of 8 volts
-        config.Voltage.withPeakForwardVoltage(Volts.of(Constants.VelocityPeakVoltage)).withPeakReverseVoltage(Volts.of(-Constants.VelocityPeakVoltage));
-        config.withCurrentLimits(new CurrentLimitsConfigs().withSupplyCurrentLimit(Amps.of(Constants.VelocityCurrentLimit)).withSupplyCurrentLimitEnable(true));
+        config1.Voltage.withPeakForwardVoltage(Volts.of(Constants.VelocityPeakVoltage)).withPeakReverseVoltage(Volts.of(-Constants.VelocityPeakVoltage));
+        config1.withCurrentLimits(new CurrentLimitsConfigs().withSupplyCurrentLimit(Amps.of(Constants.VelocityCurrentLimit)).withSupplyCurrentLimitEnable(true));
+
+        config2.Slot0.kS = kS;//0.01; // To account for friction, add 0.1 V of static feedforward
+        config2.Slot0.kV = kV;//0.12; // Kraken X60 is a 500 kV motor, 500 rpm per V = 8.333 rps per V, 1/8.33 = 0.12 volts / rotation per second
+        config2.Slot0.kP = kP;//0.11; // An error of 1 rotation per second results in 0.11 V output
+        config2.Slot0.kI = kI; // No output for integrated error
+        config2.Slot0.kD = kD; // No output for error derivative
+        // Peak output of 8 volts
+        config2.Voltage.withPeakForwardVoltage(Volts.of(Constants.VelocityPeakVoltage)).withPeakReverseVoltage(Volts.of(-Constants.VelocityPeakVoltage));
+        config2.withCurrentLimits(new CurrentLimitsConfigs().withSupplyCurrentLimit(Amps.of(Constants.VelocityCurrentLimit)).withSupplyCurrentLimitEnable(true));
 
         /* Torque-based velocity does not require a velocity feed forward, as torque will accelerate the rotor up to the desired velocity by itself */
         // configs.Slot1.kS = 2.5; // To account for friction, add 2.5 A of static feedforward
@@ -260,7 +275,16 @@ public class VelocityMech extends SubsystemBase {
         /* Retry config apply up to 5 times, report if failure */
         StatusCode status = StatusCode.StatusCodeNotInitialized;
         for (int i = 0; i < 5; ++i) {
-            status = motor.getConfigurator().apply(config);
+            status = motor1.getConfigurator().apply(config1);
+            if (status.isOK())
+                break;
+        }
+        if (!status.isOK()) {
+            System.out.println("Could not apply configs, error code: " + status.toString());
+        }
+        status = StatusCode.StatusCodeNotInitialized;
+        for (int i = 0; i < 5; ++i) {
+            status = motor2.getConfigurator().apply(config2);
             if (status.isOK())
                 break;
         }
@@ -296,8 +320,8 @@ public class VelocityMech extends SubsystemBase {
         SmartDashboard.setPersistent(prefix + "MinOutput");
         SmartDashboard.setPersistent(prefix + "RpmDelta");
 
-        double v = motor.getRotorVelocity().getValueAsDouble();
-        double p = motor.getRotorPosition().getValueAsDouble();
+        double v = motor1.getRotorVelocity().getValueAsDouble();
+        double p = motor2.getRotorPosition().getValueAsDouble();
         SmartDashboard.putNumber(prefix + "Rotor V", v);
         SmartDashboard.putNumber(prefix + "Rotor P", p);
 

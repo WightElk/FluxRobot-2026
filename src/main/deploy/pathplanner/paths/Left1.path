@@ -1,0 +1,98 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 3.539170454549164,
+        "y": 7.43625
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 4.781687796585952,
+        "y": 7.459188289559313
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 5.518079545458255,
+        "y": 7.43625
+      },
+      "prevControl": {
+        "x": 5.269154322272141,
+        "y": 7.4594067109439885
+      },
+      "nextControl": {
+        "x": 6.291072112574437,
+        "y": 7.364340993715099
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 7.373306818185528,
+        "y": 7.106431818180873
+      },
+      "prevControl": {
+        "x": 7.012178257926728,
+        "y": 7.455710931001964
+      },
+      "nextControl": {
+        "x": 7.798987228945206,
+        "y": 6.694718947537501
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 7.7752727272764375,
+        "y": 4.983227272726328
+      },
+      "prevControl": {
+        "x": 7.612622510459504,
+        "y": 5.998160625368534
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [
+    {
+      "name": "",
+      "waypointRelativePos": 0.5013368983957227,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "ShootCommand"
+        }
+      }
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 1.0,
+    "maxAcceleration": 0.5,
+    "maxAngularVelocity": 30.0,
+    "maxAngularAcceleration": 30.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": -90.0
+  },
+  "reversed": false,
+  "folder": null,
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 0.0
+  },
+  "useDefaultConstraints": false
+}

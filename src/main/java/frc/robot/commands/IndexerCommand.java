@@ -1,16 +1,8 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot.commands;
 
 import frc.robot.Constants;
 import frc.robot.Constants.IndexerConstants;
-import frc.robot.Constants.IntakeConstants;
-import frc.robot.subsystems.IndexerSubsystem;
-import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.VelocityMech;
-import frc.robot.subsystems.VelocitySubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 
 /** A command to take Algae into the robot. */
@@ -37,7 +29,7 @@ public class IndexerCommand extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    double speed = IndexerConstants.InSpeed;// * Constants.MaxMotorRPS;
+    double speed = IndexerConstants.Speed;// * Constants.MaxMotorRPS;
     if (direction != Constants.Forward)
       speed = -speed;
     indexer.setSpeed(speed);

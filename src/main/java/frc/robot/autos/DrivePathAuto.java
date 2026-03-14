@@ -117,7 +117,7 @@ public class DrivePathAuto extends Command {
     {
         double delta = time - prevTime;
 
-        double speed = drivetrain.allianceColor == Alliance.Red ? DriveConstants.AutoModeSpeed : -DriveConstants.AutoModeSpeed;
+        double speed = drivetrain.alliance == Alliance.Red ? DriveConstants.AutoModeSpeed : -DriveConstants.AutoModeSpeed;
 
         // Sample the trajectory at 3.4 seconds from the beginning.
         Trajectory.State goal = trajectory.sample(time);

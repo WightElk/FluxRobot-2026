@@ -1,54 +1,24 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot.commands;
 
-import frc.robot.Constants;
 import frc.robot.Constants.IndexerConstants;
-import frc.robot.Constants.IntakeConstants;
-import frc.robot.Constants.ShooterConstants;
-import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.RangeTable;
 import frc.robot.subsystems.PositionMech;
 import frc.robot.subsystems.VelocityMech;
-import frc.robot.subsystems.VelocitySubsystem;
+import frc.robot.subsystems.VelocityMech2;
 
 import java.util.function.Supplier;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 
 /** A command to take Algae into the robot. */
 public class RangeShootCmd extends Command {
-  class ShooterPreset {
-    public double distance;
-    public double speed;
-    public double elevation;
-
-    public ShooterPreset(double distance, double speed, double elevation)
-    {
-      this.distance = distance;
-      this.speed = speed;
-      this.elevation = elevation;
-    }
-  };
-
-  private final VelocitySubsystem shooter;
+  private final VelocityMech2 shooter;
   private final PositionMech hood;
   private final VelocityMech feeder;
+  private final RangeTable rangeTable;
   private final Supplier<Pose2d> poseProvider;
-  private ShooterPreset[] shooterPresets =
-  {
-    new ShooterPreset(17.5, 5000, 2), //0 -1
-    new ShooterPreset(47, 5000, 2), //1.5
-    new ShooterPreset(77, 5000, 2), //2.75
-    new ShooterPreset(107, 5400, 2), //
-    new ShooterPreset(127, 6350, 2),
-    new ShooterPreset(147, 6600, 2),
-    new ShooterPreset(174, 7000, 2) //
-  };
   private Translation2d hubPos = new Translation2d(182.11, 158.84);
   private Pose2d currentPose;
 
@@ -57,10 +27,11 @@ public class RangeShootCmd extends Command {
    *
    * @param roller The subsystem used by this command.
    */
-  public RangeShootCmd(VelocitySubsystem shooter, PositionMech hood, VelocityMech feeder, Supplier<Pose2d> poseProvider) {
+  public RangeShootCmd(VelocityMech2 shooter, PositionMech hood, VelocityMech feeder, RangeTable rangeTable, Supplier<Pose2d> poseProvider) {
     this.shooter = shooter;
     this.hood = hood;
     this.feeder = feeder;
+    this.rangeTable = rangeTable;
     this.poseProvider = poseProvider;
     currentPose = poseProvider.get();
     //shooter.setTargetSpeed(speed);
@@ -83,29 +54,21 @@ public class RangeShootCmd extends Command {
         Translation2d pos = pose.getTranslation();
         double distance = pos.getDistance(hubPos);
 
-        ShooterPreset preset = null;
-        for (int i = 0; i < shooterPresets.length; ++i)
-        {
-          if (distance <= shooterPresets[i].distance)
-          {
-            preset = shooterPresets[i];
-            break;
-          }
-        }
-        if (preset == null)
-        {
-            preset = shooterPresets[shooterPresets.length - 1];
-        }
-
-        double speed = preset.speed;
-        double hoodPos = preset.elevation;
+        RangeTable.Range range = rangeTable.getRange(distance);
+        double speed = range.speed;
+        double hoodPos = range.elevation;
 
         shooter.setSpeed(speed);
-        hood.setPosition(hoodPos);
+        hood.run(hoodPos);
 
         feeder.setSpeed(IndexerConstants.FeederSpeed);
 
         currentPose = pose;
+      }
+
+      if (shooter.atSetPoint() && hood.atTarget())
+      {
+        feeder.setSpeed(IndexerConstants.FeederSpeed);
       }
 
         // if (running && targetVelocityChanged)
@@ -130,17 +93,17 @@ public class RangeShootCmd extends Command {
         // //System.out.println("RPM: " + velocityRPM + " / " + vel);
   }
 
-  // Called once the command ends or is interrupted. This ensures the roller is not running when not intented.
-  @Override
-  public void end(boolean interrupted) {
-    //shooter.stop();
-  }
+    // Called once the command ends or is interrupted. This ensures the roller is not running when not intented.
+    @Override
+    public void end(boolean interrupted)
+    {
+        feeder.setSpeed(IndexerConstants.FeederSpeed);
+    }
 
-  // Returns true when the command should end.
-  @Override
-  public boolean isFinished() {
-    return false;
-  }
-
-  //
+    // Returns true when the command should end.
+    @Override
+    public boolean isFinished()
+    {
+        return false;
+    }
 }

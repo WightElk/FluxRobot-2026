@@ -78,11 +78,13 @@ public final class Constants {
     public static final int MotorId = 1;
     public static final int FollowerId = 2;//Absent
     public static final int TiltMotorId = 20;
-    public static final double InSpeed = -40;
+
+    public static final double InSpeed = 40;
+    public static final double OutSpeed = 20;
 
     public static final double TiltStep = 2;
-
-    public static final double OutSpeed = -0.2;
+    public static final double InTiltPosition = 2;
+    public static final double OutTiltPosition = 4;
 
     public static final double MaxMotorRPS = 0.5 * MaxMotorRPM / 60.0;
 
@@ -93,13 +95,12 @@ public final class Constants {
   public static final class IndexerConstants {
     public static final int IndexerId = 4;
     public static final int FeederId = 3;
-    public static final int LeftFeederId = 5;
-    public static final int RightFeederId = 6;
 
     public static final double MaxMotorRPS = 0.5 * MaxMotorRPM / 60.0;
 
-    public static final double InSpeed = -50;//1.5;//ROLLER_ALGAE_IN
+    public static final double Speed = 50;  // Backward
     public static final double FeederSpeed = 60;
+
     public static final double BackwardSpeed = -3000;//-1.5;//ROLLER_ALGAE_OUT
     public static final int ROLLER_MOTOR_CURRENT_LIMIT = 60;
     public static final double ROLLER_MOTOR_VOLTAGE_COMP = 10;
@@ -109,6 +110,15 @@ public final class Constants {
     public static final int LeftMotorId = 10;
     public static final int RightMotorId = 11;
     public static final int HoodMotorId = 12;
+
+    public static final double Speed = 90;//100;
+    public static final double SpeedDown = -2500;
+
+    public static final int ShortRange = 1;
+    public static final int MidRange = 3;
+    public static final int LongRange = 6;
+
+    public static final double HoodStep = 1;
 
     public static final int SHOOT_MOTOR_CURRENT_LIMIT = 40;
     public static final double SHOOT_MOTOR_VOLTAGE_COMP = 10;
@@ -130,11 +140,6 @@ public final class Constants {
     public static final int ShootStartTime = ShootWaitTime + ShootStartDelay;
     public static final int ShootFinishTime = ShootStartTime + ShootFinishDelay;
   
-    public static final double Speed = 90;//100;
-    public static final double SpeedDown = -2500;
-
-    public static final double HoodStep = 1;
-
     public static final double SpeedUp1 = 2110;
     public static final double SpeedUp2 = 2200;
     public static final double SpeedUp3 = 2800;
@@ -341,8 +346,8 @@ public final class Constants {
     public static final int CommandCount = 2;
     // Arrays of pairs: { Command name, Path name }
     public static final String[][] commands = {
-      {"Left", "LeftPathAuto"}
-//      {"Center", "LeftPath"},
+      {"Center", "CenterAuto"},
+      {"Left", "BlueLeftAuto"}
 //      {"Right", "LeftPath"}
     };
   }

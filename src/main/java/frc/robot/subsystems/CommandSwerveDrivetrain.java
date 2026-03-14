@@ -37,6 +37,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.units.DistanceUnit;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
@@ -80,7 +81,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     /* Keep track if we've ever applied the operator perspective before or not */
     private boolean m_hasAppliedOperatorPerspective = false;
 
-    public Alliance allianceColor = Alliance.Blue;
+    public Alliance alliance = Alliance.Blue;
     public OptionalInt stationLocation;
     
     private com.pathplanner.lib.config.RobotConfig robotConfig;
@@ -182,10 +183,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             new Translation2d(config.backRight.xPos, config.backRight.yPos)
         );
 
+        initPathPlanner();
+
         if (Utils.isSimulation()) {
             startSimThread();
         }
-        initPathPlanner();
     }
 
     /**
@@ -332,7 +334,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 //            System.out.println("Drive-periodic " + m_hasAppliedOperatorPerspective);
 
             DriverStation.getAlliance().ifPresent(color -> {
-                allianceColor = color;
+                alliance = color;
                 stationLocation = DriverStation.getLocation();
                 m_hasAppliedOperatorPerspective = true;
                 //TODO
@@ -425,7 +427,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     }
 
     protected void initOdometry(Translation2d frontLeft, Translation2d frontRight, Translation2d backLeft, Translation2d backRight) {
-//        kinematics = new SwerveDriveKinematics(frontLeft, frontRight, backLeft, backRight);
         kinematics = getKinematics();
 
         SwerveDriveState driveState = getState();
@@ -435,6 +436,13 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     
         poseEstimator = new SwerveDrivePoseEstimator(kinematics, gyro.getRotation2d(),
             driveState.ModulePositions, initPose);
+    }
+
+    public void setInitPose(double x, double y, double heading)
+    {
+        initPose = new Pose2d(x, y, alliance == Alliance.Blue ? kBlueAlliancePerspectiveRotation : kRedAlliancePerspectiveRotation);
+        odometry.resetPose(initPose);
+        poseEstimator.resetPose(initPose);
     }
 
     /** Get the estimated pose of the swerve drive on the field. */
@@ -468,6 +476,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     public void resetOdometry(Pose2d pose) {
 //        gyro.reset();
         odometry.resetPosition(gyro.getRotation2d(), getState().ModulePositions, pose);
+    }
+
+    public void resetGyro() {
+        gyro.reset();
     }
 
     public Rotation2d getYaw() {
@@ -512,12 +524,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 translationPid, rotationPid
             ),
             robotConfig, // The robot configuration
-            () -> {
-                // Boolean supplier that controls when the path will be mirrored for the red alliance
-                // This will flip the path being followed to the red side of the field.
-                // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
-                return allianceColor == Alliance.Red;
-            },
+            // Boolean supplier that controls when the path will be mirrored for the red alliance
+            // This will flip the path being followed to the red side of the field.
+            // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+            () -> { return alliance == Alliance.Red; },
             this // Reference to this subsystem to set requirements
         );
         return true;
@@ -547,13 +557,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                     translationPid, rotationPid
                 ),
                 robotConfig, // The robot configuration
-                () -> {
-                    // Boolean supplier that controls when the path will be mirrored for the red alliance
-                    // This will flip the path being followed to the red side of the field.
-                    // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
-                    return allianceColor == Alliance.Red;
-                },
-                this // Reference to this subsystem to set requirements
+                () -> { return alliance == Alliance.Red; },
+                this
             );
         } catch (Exception e) {
             DriverStation.reportError("Big oops: " + e.getMessage(), e.getStackTrace());

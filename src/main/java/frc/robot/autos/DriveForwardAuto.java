@@ -58,7 +58,7 @@ public class DriveForwardAuto extends Command {
     // drive forward at 30% speed
     if(timer.get() < driveTime)
     {
-      double speed = drivetrain.allianceColor == Alliance.Red ? DriveConstants.AutoModeSpeed : -DriveConstants.AutoModeSpeed;
+      double speed = drivetrain.alliance == Alliance.Red ? DriveConstants.AutoModeSpeed : -DriveConstants.AutoModeSpeed;
       drivetrain.setControl(drive.withVelocityX(speed)
         .withVelocityY(0)
         .withRotationalRate(0));

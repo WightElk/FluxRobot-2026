@@ -45,7 +45,8 @@ import frc.robot.PIDCtrl;
 public class PositionMech extends SubsystemBase {
     private final String name;
     private final TalonFX motor;
-    private final TalonFXConfiguration configs;
+    private final TalonFXConfiguration config;
+
     private final PositionVoltage positionVoltage = new PositionVoltage(0).withSlot(0);
     /* Start at velocity 0, use slot 1 */
     private final PositionTorqueCurrentFOC positionTorque = new PositionTorqueCurrentFOC(0).withSlot(1);
@@ -113,8 +114,8 @@ public class PositionMech extends SubsystemBase {
         this.name = name;
         motor = new TalonFX(motorId, canBus);
 
-        configs = new TalonFXConfiguration();
-        FeedbackConfigs feedback = configs.Feedback;
+        config = new TalonFXConfiguration();
+        FeedbackConfigs feedback = config.Feedback;
         // feedback.RotorToSensorRatio = 1.0;
         // feedback.SensorToMechanismRatio = 1.0;
 
@@ -137,6 +138,21 @@ public class PositionMech extends SubsystemBase {
         pidCtrl = new PIDCtrl(kP, kD, kI, timeDelta);
     }
 
+    public void setTargetPosition(double pos)
+    {
+        targetPosition = pos;
+    }
+
+    public boolean atTarget()
+    {
+        return atPosition;
+    }
+
+    public double getPosition()
+    {
+        return motor.getPosition().getValue().in(Rotations);
+    }
+
     @Override
     public void periodic() {
         if (running && targetPositionChanged)
@@ -155,10 +171,6 @@ public class PositionMech extends SubsystemBase {
         }
         atPosition = Math.abs(pos - targetPosition) <= posDelta;
         //System.out.println("Pos: " + position + " / " + pos);
-    }
-
-    public boolean atSetPoint() {
-        return atPosition;
     }
 
     public void init(double rpm) {
@@ -210,6 +222,7 @@ public class PositionMech extends SubsystemBase {
     }
     
     public void run() {
+        running = true;
         // speed = -speed;
         // double rps = speed  * Constants.ShooterConstants.MaxMotorRPS;
         if (targetPosition != position)
@@ -223,46 +236,32 @@ public class PositionMech extends SubsystemBase {
         // System.out.println("Speed: " + velocityRPM + " / " + v);
     }
 
-    public void setPosition(double pos) {
+    public void run(double pos) {
+        running = true;
 //        pos = -pos;
         double rps = pos  * Constants.ShooterConstants.MaxMotorRPS;
 
         motor.setControl(positionVoltage.withPosition(pos));
 //        .withFeedForward(feedforward))
-        double p = motor.getPosition().getValue().in(Rotations);
-        System.out.println("Position: " + pos + " / " + targetPosition  + " / " + p);
     }
 
     public void stop() {
         motor.setControl(brake);
-        reset();
-    }
-
-    public double getPosition()
-    {
-        return motor.getPosition().getValue().in(Rotations);
-    }
-
-    public void runDown(double target) {
-        // double velUp = upEncoder    .getVelocity();
-        // double velDown = downEncoder.getVelocity();
-//        upShooterMotor.set(target);
-//        downShooterMotor.set(-target);
-        // SmartDashboard.putNumber("Shooter RPM Up", velUp);
-        // SmartDashboard.putNumber("Shooter RPM Down", velDown);
+        running = false;
+        targetPositionChanged = false;
     }
 
     public void setConfig()
     {
         /* Voltage-based velocity requires a velocity feed forward to account for the back-emf of the motor */
-        configs.Slot0.kS = kS;//0.         01; // To account for friction, add 0.1 V of static feedforward
-        configs.Slot0.kV = kV;//0.12; // Kraken X60 is a 500 kV motor, 500 rpm per V = 8.333 rps per V, 1/8.33 = 0.12 volts / rotation per second
-        configs.Slot0.kP = kP;//0.11; // An error of 1 rotation per second results in 0.11 V output
-        configs.Slot0.kI = kI; // No output for integrated error
-        configs.Slot0.kD = kD; // No output for error derivative
+        config.Slot0.kS = kS;//0.         01; // To account for friction, add 0.1 V of static feedforward
+        config.Slot0.kV = kV;//0.12; // Kraken X60 is a 500 kV motor, 500 rpm per V = 8.333 rps per V, 1/8.33 = 0.12 volts / rotation per second
+        config.Slot0.kP = kP;//0.11; // An error of 1 rotation per second results in 0.11 V output
+        config.Slot0.kI = kI; // No output for integrated error
+        config.Slot0.kD = kD; // No output for error derivative
         // Peak output of 8 volts
-        configs.Voltage.withPeakForwardVoltage(Volts.of(Constants.PositionPeakVoltage)).withPeakReverseVoltage(Volts.of(-Constants.PositionPeakVoltage));
-        configs.withCurrentLimits(new CurrentLimitsConfigs().withSupplyCurrentLimit(Amps.of(Constants.PositionCurrentLimit)).withSupplyCurrentLimitEnable(true));
+        config.Voltage.withPeakForwardVoltage(Volts.of(Constants.PositionPeakVoltage)).withPeakReverseVoltage(Volts.of(-Constants.PositionPeakVoltage));
+        config.withCurrentLimits(new CurrentLimitsConfigs().withSupplyCurrentLimit(Amps.of(Constants.PositionCurrentLimit)).withSupplyCurrentLimitEnable(true));
 
         /* Torque-based velocity does not require a velocity feed forward, as torque will accelerate the rotor up to the desired velocity by itself */
         // configs.Slot1.kS = 2.5; // To account for friction, add 2.5 A of static feedforward
@@ -276,7 +275,7 @@ public class PositionMech extends SubsystemBase {
         /* Retry config apply up to 5 times, report if failure */
         StatusCode status = StatusCode.StatusCodeNotInitialized;
         for (int i = 0; i < 5; ++i) {
-            status = motor.getConfigurator().apply(configs);
+            status = motor.getConfigurator().apply(config);
             if (status.isOK())
                 break;
         }
