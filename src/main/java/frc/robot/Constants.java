@@ -341,7 +341,7 @@ public final class Constants {
     public static final int CommandCount = 2;
     // Arrays of pairs: { Command name, Path name }
     public static final String[][] commands = {
-//      {"Left", "LeftPath"},
+      {"Left", "LeftPathAuto"}
 //      {"Center", "LeftPath"},
 //      {"Right", "LeftPath"}
     };

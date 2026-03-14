@@ -57,7 +57,7 @@ public class RangeShootCmd extends Command {
    *
    * @param roller The subsystem used by this command.
    */
-  public RangeShootCmd(VelocitySubsystem shooter, VelocityMech feeder, PositionMech hood, Supplier<Pose2d> poseProvider) {
+  public RangeShootCmd(VelocitySubsystem shooter, PositionMech hood, VelocityMech feeder, Supplier<Pose2d> poseProvider) {
     this.shooter = shooter;
     this.hood = hood;
     this.feeder = feeder;
@@ -107,7 +107,6 @@ public class RangeShootCmd extends Command {
 
         currentPose = pose;
       }
-    // shooter.setSpeed(ShooterConstants.Speed);
 
         // if (running && targetVelocityChanged)
         // {

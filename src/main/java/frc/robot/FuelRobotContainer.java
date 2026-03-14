@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.CANBus;
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.GoalEndState;
@@ -70,7 +71,7 @@ public class FuelRobotContainer extends RobotContainer {
     hood = new PositionMech(canBus, "Hood", ShooterConstants.HoodMotorId);
 
     Supplier<Pose2d> goalPoseSupplier = () -> new Pose2d(Units.feetToMeters(5), Units.feetToMeters(3), Rotation2d.fromDegrees(90));
-    Supplier<Pose2d> poseProvider = drivetrain::getPose;
+//    Supplier<Pose2d> poseProvider = drivetrain::getPose;
 
     //autoDriveCommand = new DriveToPoseCommand(drivetrain, goalPoseSupplier, poseProvider, true);
   
@@ -78,6 +79,9 @@ public class FuelRobotContainer extends RobotContainer {
 
     storeParameters();
   
+    // Build an auto chooser. This will use Commands.none() as the default option.
+    autoCommandChooser = AutoBuilder.buildAutoChooser();
+
     initAutoCommands();
   }
 
@@ -121,7 +125,7 @@ public class FuelRobotContainer extends RobotContainer {
     controller.povUp().whileTrue(new RunCommand(() -> hood.jogUp(ShooterConstants.HoodStep), hood));
     controller.povDown().whileTrue(new RunCommand(() -> hood.jogDown(ShooterConstants.HoodStep), hood));
 
-    controller.rightBumper().whileTrue(new RangeShootCmd(shooter, feeder, drivetrain::getPose));
+    controller.rightBumper().whileTrue(new RangeShootCmd(shooter, hood, feeder, drivetrain::getPose));
 
     // Fetch parameters
     controller.start().toggleOnTrue(new Command() {
@@ -147,15 +151,15 @@ public class FuelRobotContainer extends RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    // Build an auto chooser. This will use Commands.none() as the default option.
-    //autoCommandChooser = AutoBuilder.buildAutoChooser();
     // Another option that allows you to specify the default auto by its name
     // autoCommandChooser = AutoBuilder.buildAutoChooser("My Default Auto");
 
-//    return autoCommandChooser.getSelected();
+    return autoCommandChooser.getSelected();
+
 //    return Autos.exampleAuto(exampleSubsystem);
     // The selected command will be run in autonomous
-    return autoDriveForward;
+//    return autoDriveForward;
+//    return autoDriveCommand.andThen((new RunCommand(() -> elevator.moveToLevel1(), elevator)).withTimeout(2.0)).andThen(new RawTrayCommand(tray, () -> -TrayConstants.Speed));
   }
 
   public void storeParameters()

@@ -10,6 +10,8 @@ import com.revrobotics.spark.SparkRelativeEncoder;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.FeedbackConfigs;
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
@@ -112,6 +114,14 @@ public class PositionMech extends SubsystemBase {
         motor = new TalonFX(motorId, canBus);
 
         configs = new TalonFXConfiguration();
+        FeedbackConfigs feedback = configs.Feedback;
+        // feedback.RotorToSensorRatio = 1.0;
+        // feedback.SensorToMechanismRatio = 1.0;
+
+        // MotionMagicConfigs mm = configs.MotionMagic;
+        // mm.withMotionMagicCruiseVelocity(RotationsPerSecond.of(5))
+        //     .withMotionMagicAcceleration(RotationsPerSecondPerSecond.of(10))
+        //     .withMotionMagicJerk(RotationsPerSecondPerSecond.per(Second).of(100));
 
         setConfig();
 
@@ -273,7 +283,7 @@ public class PositionMech extends SubsystemBase {
         if (!status.isOK()) {
             System.out.println("Could not apply configs, error code: " + status.toString());
         }
-        motor.setPosition(0);
+        //motor.setPosition(0);
 
     }
 
@@ -291,7 +301,7 @@ public class PositionMech extends SubsystemBase {
         SmartDashboard.setPersistent(prefix + "PosDelta");
 
         SmartDashboard.putNumber(prefix + "Target Pos", targetPosition);
-        SmartDashboard.putNumber(prefix + "Pos", position);
+        SmartDashboard.putNumber(prefix + "Position", position);
 
         SmartDashboard.putNumber(prefix + "kP", kP);
         SmartDashboard.putNumber(prefix + "kD", kD);
@@ -302,6 +312,11 @@ public class PositionMech extends SubsystemBase {
         SmartDashboard.putNumber(prefix + "MinOutput", kMinOutput);
 
         SmartDashboard.putNumber(prefix + "PosDelta", posDelta);
+
+        double v = motor.getRotorVelocity().getValueAsDouble();
+        double p = motor.getRotorPosition().getValueAsDouble();
+        SmartDashboard.putNumber(prefix + "Rotor V", v);
+        SmartDashboard.putNumber(prefix + "Rotor P", p);
     }
 
     public void getParams() {

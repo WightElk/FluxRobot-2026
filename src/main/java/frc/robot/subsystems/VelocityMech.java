@@ -9,6 +9,7 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.NeutralOut;
@@ -98,6 +99,10 @@ public class VelocityMech extends SubsystemBase {
         motor = new TalonFX(motorId, canBus);
         configs = new TalonFXConfiguration();
 
+        FeedbackConfigs feedback = configs.Feedback;
+        // feedback.RotorToSensorRatio = 1.0;
+        // feedback.SensorToMechanismRatio = 1.0;
+
         setConfig();
 
         pidController = new PIDController(kP, kI, kD);
@@ -122,8 +127,8 @@ public class VelocityMech extends SubsystemBase {
         if (running && targetVelocityChanged)
         {
             velocityRPM = direction == Constants.Backward ? -targetVelocity : targetVelocity;
-            motor.setControl(velocityVoltage.withVelocity(velocityRPM / 60.0));
-            System.out.println("setControl-periodic");
+            motor.setControl(velocityVoltage.withVelocity(velocityRPM));
+            System.out.println("setControl-periodic " + velocityRPM);
         }
 
         double vel = 60 * getVelocity();
@@ -297,6 +302,12 @@ public class VelocityMech extends SubsystemBase {
         SmartDashboard.setPersistent(prefix + "MaxOutput");
         SmartDashboard.setPersistent(prefix + "MinOutput");
         SmartDashboard.setPersistent(prefix + "RpmDelta");
+
+        double v = motor.getRotorVelocity().getValueAsDouble();
+        double p = motor.getRotorPosition().getValueAsDouble();
+        SmartDashboard.putNumber(prefix + "Rotor V", v);
+        SmartDashboard.putNumber(prefix + "Rotor P", p);
+
         System.out.println("putParams: " + name);
     }
 
