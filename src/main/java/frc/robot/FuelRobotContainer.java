@@ -115,8 +115,8 @@ public class FuelRobotContainer extends RobotContainer {
       // Intake control
       // Right Trigger - Run intake rolller IN
       // Right Bumper - Run intake rolller OUT
-      driverController.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(new VelocityCmd(intake, () -> IntakeConstants.InSpeed, Constants.Backward));
-      driverController.rightBumper().whileTrue(new VelocityCmd(intake, () -> IntakeConstants.OutSpeed, Constants.Forward));
+      driverController.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(new VelocityCmd(intake, () -> IntakeConstants.InSpeed, Constants.Forward));
+      driverController.rightBumper().whileTrue(new VelocityCmd(intake, () -> IntakeConstants.OutSpeed, Constants.Backward));
 
       // Intake Tilt control
       // A - Deploy intake
@@ -130,7 +130,7 @@ public class FuelRobotContainer extends RobotContainer {
 
       // Shooter and Feeder control
       // Right Trigger - Run Feeder and Shoot
-      controller.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(new VelocityCmd(feeder, () -> IndexerConstants.FeederSpeed, Constants.Forward));
+      controller.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(new VelocityCmd(feeder, () -> IndexerConstants.FeederSpeed, Constants.Backward));
       // Left Trigger  - Aim at Hub then Run Feeder and Shoot
       controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new ShootToHubCmd(shooter, hood, feeder, drivetrain::getPose));
 
@@ -195,7 +195,7 @@ public class FuelRobotContainer extends RobotContainer {
       // Y - Long Shooter
       controller.a().onTrue(new SetShooterRangeCmd(shooter, hood, rangeTable, ShooterConstants.ShortRange));
       controller.b().onTrue(new SetShooterRangeCmd(shooter, hood, rangeTable, ShooterConstants.MidRange));
-      controller.b().onTrue(new SetShooterRangeCmd(shooter, hood, rangeTable, ShooterConstants.LongRange));
+      controller.y().onTrue(new SetShooterRangeCmd(shooter, hood, rangeTable, ShooterConstants.LongRange));
 
       // Shooter Hood
       // Pov Up - Hood Up
@@ -209,26 +209,9 @@ public class FuelRobotContainer extends RobotContainer {
     }
 
     // Fetch parameters
-    controller.back().and(controller.x().negate()).toggleOnTrue(new Command() {
-        @Override public void initialize() {
-          fetchParameters();    
-        }
-        @Override public boolean isFinished() {
-          return true;
-        }
-    });
+    controller.back().and(controller.x().negate()).toggleOnTrue(Commands.runOnce(() -> fetchParameters()));
     // Update parameters
-    controller.back().and(controller.x()).toggleOnTrue(new Command() {
-        @Override public void initialize() {
-          storeParameters();
-        }
-        @Override public void execute() {
-           System.out.println("execute");
-        }
-        @Override public boolean isFinished() {
-          return true;
-        }
-    });
+    controller.back().and(controller.x()).toggleOnTrue(Commands.runOnce(() -> storeParameters()));
   }
 
   public Command getAutonomousCommand() {

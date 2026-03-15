@@ -33,6 +33,7 @@ public class SetShooterRangeCmd extends Command {
     double speed = rangeTable.getSpeedPreset(range);
     double hoodPos = rangeTable.getElevationPreset(range);
     System.out.println("SetShootCmd: " + speed + " / " + hoodPos);
+
     shooter.setTargetSpeed(speed);
     shooter.setSpeed(speed);
     hood.run(hoodPos);

@@ -35,7 +35,7 @@ import edu.wpi.first.wpilibj2.command.Command;
  */
 public final class Constants {
   public static final int Forward = 0;
-  public static final int Backward = 0;
+  public static final int Backward = 1;
 
   public static final String fieldLayoutFile = "2026-rebuilt-welded.json";
   //"2025-reefscape-andymark.json";
@@ -80,7 +80,7 @@ public final class Constants {
     public static final int TiltMotorId = 20;
 
     public static final double InSpeed = 60;
-    public static final double OutSpeed = 20;
+    public static final double OutSpeed = 40;
 
     public static final double TiltStep = 1;
     public static final double InTiltPosition = 0;
@@ -98,8 +98,8 @@ public final class Constants {
 
     public static final double MaxMotorRPS = 0.5 * MaxMotorRPM / 60.0;
 
-    public static final double Speed = 50;  // Backward
-    public static final double FeederSpeed = -45;
+    public static final double Speed = 50;
+    public static final double FeederSpeed = 45;  // Backward
 
     public static final double BackwardSpeed = -3000;//-1.5;//ROLLER_ALGAE_OUT
     public static final int ROLLER_MOTOR_CURRENT_LIMIT = 60;
@@ -259,10 +259,12 @@ public final class Constants {
   public static final class VisionConstants {
     /** PhotonVision camera name (must match name in PhotonVision UI) */
     public static final String CAMERA_NAME = "Logitech_Webcam_C930e";
-    public static final String CameraBackName = "ThriftyCam";
+    public static final String CameraNameLeft = "ThriftyCam";
+    public static final String CameraNameRight = "ThriftyCam";
 
-    public static final Transform3d robotToCam1 = new Transform3d(new Translation3d(0.5, 0.0, 0.5), new Rotation3d(0, 0, 0));
-    public static final Transform3d robotToCam2 = new Transform3d(new Translation3d(0.5, 0.0, 0.5), new Rotation3d(0, 0, 0));
+    public static final Transform3d robotToCamCenter = new Transform3d(new Translation3d(0.5, 0.0, 0.5), new Rotation3d(0, 0, 0));
+    public static final Transform3d robotToCamLeft = new Transform3d(new Translation3d(0.5, 0.0, 0.5), new Rotation3d(0, 0, 0));
+    public static final Transform3d robotToCamRight = new Transform3d(new Translation3d(0.5, 0.0, 0.5), new Rotation3d(0, 0, 0));
 
     public static double ReefPolesGap = Units.feetToMeters(13.0);
 

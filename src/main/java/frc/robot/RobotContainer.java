@@ -144,7 +144,7 @@ public class RobotContainer {
     }
 
     // Single camera vision for AprilTag detection
-    vision = visionEnabled ? new VisionSubsystem(VisionConstants.CAMERA_NAME, VisionConstants.CameraBackName, fieldLayout, drivetrain::addVisionMeasurement) : null;
+    vision = visionEnabled ? new VisionSubsystem(VisionConstants.CAMERA_NAME, VisionConstants.CameraNameLeft, VisionConstants.CameraNameRight, fieldLayout, drivetrain::addVisionMeasurement) : null;
 
     SmartDashboard.putNumber("Start_X", xStartPos);
     SmartDashboard.putNumber("Middle_X", xMiddlePos);

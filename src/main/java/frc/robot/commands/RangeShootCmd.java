@@ -36,7 +36,7 @@ public class RangeShootCmd extends Command {
     currentPose = poseProvider.get();
     //shooter.setTargetSpeed(speed);
     // Use addRequirements() here to declare subsystem dependencies.
-    addRequirements(shooter);
+    addRequirements(shooter, hood, feeder);
   }
 
   // Called when the command is initially scheduled.
@@ -66,7 +66,7 @@ public class RangeShootCmd extends Command {
         currentPose = pose;
       }
 
-      if (shooter.atSetPoint() && hood.atTarget())
+      if (shooter.atTarget() && hood.atTarget())
       {
         feeder.setSpeed(IndexerConstants.FeederSpeed);
       }

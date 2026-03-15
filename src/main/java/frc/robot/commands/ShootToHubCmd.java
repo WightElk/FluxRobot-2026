@@ -27,7 +27,7 @@ public class ShootToHubCmd extends Command
         currentPose = poseProvider.get();
         //shooter.setTargetSpeed(speed);
         // Use addRequirements() here to declare subsystem dependencies.
-        addRequirements(shooter);
+        addRequirements(shooter, hood, feeder);
     }
 
     @Override

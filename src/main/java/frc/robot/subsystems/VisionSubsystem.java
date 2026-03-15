@@ -28,7 +28,8 @@ import frc.robot.Robot;
  */
 public class VisionSubsystem extends SubsystemBase {
     private final PhotonCamera camera;
-    private final PhotonCamera cameraBack;
+    private final PhotonCamera cameraLeft;
+    private final PhotonCamera cameraRight;
     private PhotonPipelineResult latestResult;
     private boolean cameraConnected = true;
     private int disconnectCount = 0;
@@ -44,13 +45,14 @@ public class VisionSubsystem extends SubsystemBase {
      * Creates a new VisionSubsystem.
      * @param cameraName Name of the PhotonVision camera (configured in PhotonVision UI)
      */
-    public VisionSubsystem(String cameraName, String cameraBackName, AprilTagFieldLayout fieldLayout, EstimateConsumer estConsumer) {
+    public VisionSubsystem(String cameraName, String cameraNameLeft, String cameraNameRight, AprilTagFieldLayout fieldLayout, EstimateConsumer estConsumer) {
         this.estConsumer = estConsumer;
         this.fieldLayout = fieldLayout;
         this.camera = new PhotonCamera(cameraName);
-        this.cameraBack = new PhotonCamera(cameraBackName);
+        this.cameraLeft = new PhotonCamera(cameraNameLeft);
+        this.cameraRight = new PhotonCamera(cameraNameRight);
         this.latestResult = new PhotonPipelineResult();
-        photonEstimator = new PhotonPoseEstimator(fieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, VisionConstants.robotToCam1);
+        photonEstimator = new PhotonPoseEstimator(fieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, VisionConstants.robotToCamCenter);
         photonEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
     }
 

@@ -128,6 +128,10 @@ public class VelocityMech2 extends SubsystemBase {
         targetVelocity = speed;
     }
 
+    public boolean atTarget() {
+        return atSpeed;
+    }
+
     public boolean running()
     {
         return running;        
@@ -162,10 +166,6 @@ public class VelocityMech2 extends SubsystemBase {
         double target = direction == Constants.Backward ? -targetVelocity : targetVelocity;
         atSpeed = Math.abs(vel - target) <= rpmDelta;
 
-    }
-
-    public boolean atSetPoint() {
-        return atSpeed;
     }
 
     public void init(double rpm) {
