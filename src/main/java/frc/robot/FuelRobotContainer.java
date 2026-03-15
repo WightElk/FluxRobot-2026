@@ -128,11 +128,14 @@ public class FuelRobotContainer extends RobotContainer {
       // driverController.povLeft().whileTrue(new RunCommand(() -> tilter.jogDown(IntakeConstants.TiltStep), tilter));
       // driverController.povRight().whileTrue(new RunCommand(() -> tilter.jogUp(IntakeConstants.TiltStep), tilter));
 
+      controller.back().and(controller.leftBumper()).onTrue(Commands.runOnce(() -> resetEncoders()));
+
       // Shooter and Feeder control
       // Right Trigger - Run Feeder and Shoot
       controller.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(new VelocityCmd(feeder, () -> IndexerConstants.FeederSpeed, Constants.Backward));
       // Left Trigger  - Aim at Hub then Run Feeder and Shoot
-      controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new ShootToHubCmd(shooter, hood, feeder, drivetrain::getPose));
+//      controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new ShootToHubCmd(shooter, hood, feeder, drivetrain::getPose));
+      controller.rightBumper().whileTrue(new VelocityCmd(indexer, () -> IndexerConstants.Speed, Constants.Backward));
 
       // Shooter control
       // A - Shooter ON
@@ -144,7 +147,6 @@ public class FuelRobotContainer extends RobotContainer {
       // Shooter control
       // Start - Toggles Shooter ON/OFF
       controller.start().toggleOnTrue(new ShootCommand(shooter, () -> ShooterConstants.Speed, Constants.Forward));
-      controller.start().toggleOnFalse(Commands.runOnce(shooter::stop));
 
       // Indexer control
       // POV Right - Indexer rollers IN
