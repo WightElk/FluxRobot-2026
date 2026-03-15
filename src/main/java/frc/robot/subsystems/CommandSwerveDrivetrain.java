@@ -506,35 +506,40 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     protected boolean initPathPlanner() {
         // Load the RobotConfig from the GUI settings. You should probably
         // store this in your Constants file
-        try{
+        try
+        {
             robotConfig = RobotConfig.fromGUISettings();
-        } catch (Exception e) {
+        }
+        catch (Exception e)
+        {
             e.printStackTrace();
             return false;
         }
 
         // Configure AutoBuilder last
         AutoBuilder.configure(
-            this::getPose, // Robot pose supplier
-            this::resetPose, // Method to reset odometry (will be called if your auto has a starting pose)
-            this::getChassisSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+            this::getPose,
+             // Method to reset odometry (will be called if your auto has a starting pose)
+            this::resetPose,
+            // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+            this::getChassisSpeeds,
+             // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
             //TODO :drive()
-            (speeds, feedforwards) -> setChassisSpeeds(speeds), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
-            new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
-                translationPid, rotationPid
-            ),
-            robotConfig, // The robot configuration
+            (speeds, feedforwards) -> setChassisSpeeds(speeds),
+            new PPHolonomicDriveController(translationPid, rotationPid),
+            robotConfig,
             // Boolean supplier that controls when the path will be mirrored for the red alliance
             // This will flip the path being followed to the red side of the field.
             // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
             () -> { return alliance == Alliance.Red; },
-            this // Reference to this subsystem to set requirements
+            this
         );
         return true;
     }
 
     public Command followPathCommand(String pathName) {
-        try{
+        try
+        {
             PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
 
     //           public FollowPathCommand(
@@ -549,19 +554,18 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
             return new FollowPathCommand(
                 path,
-                this::getPose, // Robot pose supplier
-                this::getChassisSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-                //TODO :drive()
-                (speeds, feedforwards) -> setChassisSpeeds(speeds), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds, AND feedforwards
-                new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
-                    translationPid, rotationPid
-                ),
-                robotConfig, // The robot configuration
+                this::getPose,
+                this::getChassisSpeeds,
+                (speeds, feedforwards) -> setChassisSpeeds(speeds),
+                new PPHolonomicDriveController(translationPid, rotationPid),
+                robotConfig,
                 () -> { return alliance == Alliance.Red; },
                 this
             );
-        } catch (Exception e) {
-            DriverStation.reportError("Big oops: " + e.getMessage(), e.getStackTrace());
+        }
+        catch (Exception e)
+        {
+            DriverStation.reportError("Error: " + e.getMessage(), e.getStackTrace());
             return Commands.none();
         }
     }

@@ -111,7 +111,9 @@ public final class Constants {
     public static final int RightMotorId = 11;
     public static final int HoodMotorId = 12;
 
-    public static final double Speed = 50;//100;
+    public static final double Speed = 50;
+    public static final double SpeedStep = 100.0 / 60.0;
+
     public static final double SpeedDown = -2500;
 
     public static final int ShortRange = 1;

@@ -156,10 +156,6 @@ public class RobotContainer {
     //configureBindings();
   }
 
-  private boolean m_hasAppliedOperatorPerspective = false;
-  private Alliance allianceColor = Alliance.Blue;
-
-
   /**
    * Use this method to define your trigger->command mappings. Triggers can be created via the
    * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary

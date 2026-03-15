@@ -235,8 +235,6 @@ public class VelocityMech2 extends SubsystemBase {
         motor2.setControl(velocityVoltage.withVelocity(-speed));
 //        .withFeedForward(feedforward))
 //        motor.setControl(velocityTorque.withVelocity(speed * Constants.MaxMotorRPS));
-        double v = motor1.getVelocity().getValue().magnitude();
-        System.out.println("SetSpeed: " + speed + " / " + v);
     }
 
     public void stop() {
