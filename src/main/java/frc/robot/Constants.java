@@ -48,6 +48,8 @@ public final class Constants {
   public static final double MaxMotorRPM = 6000.0;  //6380
   public static final double MaxMotorRPS = 0.5 * MaxMotorRPM / 60.0;
 
+  public static final double MaxMotorRPStoSet = MaxMotorRPM / 60.0;
+
   public static final double VelocityPeakVoltage = 11.0;  // 8
   public static final double PositionPeakVoltage = 11.0;
   public static final double VelocityCurrentLimit = 40.0;
@@ -80,7 +82,7 @@ public final class Constants {
     public static final int TiltMotorId = 20;
 
     public static final double InSpeed = 60;
-    public static final double OutSpeed = 40;
+    public static final double OutSpeed = 60;
 
     public static final double TiltStep = 1;
     public static final double InTiltPosition = 0;

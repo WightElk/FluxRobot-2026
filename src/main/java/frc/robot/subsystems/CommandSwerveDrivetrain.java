@@ -85,8 +85,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     public OptionalInt stationLocation;
     
     private com.pathplanner.lib.config.RobotConfig robotConfig;
-    private PIDConstants translationPid = new PIDConstants(5.0, 0.0, 0.0);
-    private PIDConstants rotationPid = new PIDConstants(5.0, 0.0, 0.0);
+    private PIDConstants translationPid = new PIDConstants(5.0, 0.0, 0.0001);
+    private PIDConstants rotationPid = new PIDConstants(5.0, 0.0, 0.0001);
 
     /* Swerve requests to apply during SysId characterization */
     private final SwerveRequest.SysIdSwerveTranslation m_translationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
@@ -474,7 +474,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     }
 
     public void resetOdometry(Pose2d pose) {
-//        gyro.reset();
+        gyro.reset();
         odometry.resetPosition(gyro.getRotation2d(), getState().ModulePositions, pose);
     }
 

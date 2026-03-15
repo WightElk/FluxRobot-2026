@@ -108,7 +108,7 @@ public class FuelRobotContainer extends RobotContainer {
     if (useTwoControllers)
     {
       // X - Keep robot in place
-      driverController.x().whileTrue(drivetrain.applyRequest(() -> brake));      
+      driverController.x().whileTrue(drivetrain.applyRequest(() -> brake));
 
       driverController.y().onTrue(Commands.runOnce(drivetrain::resetGyro));
 
@@ -125,10 +125,14 @@ public class FuelRobotContainer extends RobotContainer {
       driverController.b().onTrue(new TiltIntakeCmd(tilter, Constants.Backward));
       // Pov Left - Push out intake
       // Pov Down - Pull in intake
-      // driverController.povLeft().whileTrue(new RunCommand(() -> tilter.jogDown(IntakeConstants.TiltStep), tilter));
-      // driverController.povRight().whileTrue(new RunCommand(() -> tilter.jogUp(IntakeConstants.TiltStep), tilter));
+      driverController.povLeft().whileTrue(new RunCommand(() -> tilter.jogDown(IntakeConstants.TiltStep), tilter));
+      driverController.povRight().whileTrue(new RunCommand(() -> tilter.jogUp(IntakeConstants.TiltStep), tilter));
 
-      controller.back().and(controller.leftBumper()).onTrue(Commands.runOnce(() -> resetEncoders()));
+      driverController.back().and(controller.leftBumper()).onTrue(Commands.runOnce(() -> resetEncoders()));
+      // Fetch parameters
+      driverController.back().and(controller.leftBumper().negate()).toggleOnTrue(Commands.runOnce(() -> fetchParameters()));
+      // Update parameters
+      //controller.back().and(controller.x()).toggleOnTrue(Commands.runOnce(() -> storeParameters()));
 
       // Shooter and Feeder control
       // Right Trigger - Run Feeder and Shoot
@@ -151,8 +155,8 @@ public class FuelRobotContainer extends RobotContainer {
       // Indexer control
       // POV Right - Indexer rollers IN
       // POV Left  - Indexer rollers OUT
-      controller.povRight().whileTrue(new VelocityCmd(indexer, () -> IndexerConstants.Speed, Constants.Backward));
-      controller.povLeft().whileTrue(new VelocityCmd(indexer, () -> IndexerConstants.Speed, Constants.Forward));
+      controller.povRight().and(controller.leftBumper()).whileTrue(Commands.runOnce(() -> shooter.speedUp(ShooterConstants.SpeedStep), shooter));
+      controller.povLeft().and(controller.leftBumper()).whileTrue(Commands.runOnce(() -> shooter.speedDown(ShooterConstants.SpeedStep), shooter));
 
       // Shooter Hood
       // Pov Up - Hood Up
@@ -172,8 +176,11 @@ public class FuelRobotContainer extends RobotContainer {
       // Intake Tilt control
       // Pov Left - Push out intake
       // Pov Down - Pull in intake
-      controller.povLeft().whileTrue(new RunCommand(() -> tilter.jogDown(IntakeConstants.TiltStep), tilter));
-      controller.povRight().whileTrue(new RunCommand(() -> tilter.jogUp(IntakeConstants.TiltStep), tilter));
+      controller.povLeft().and(controller.leftBumper().negate()).whileTrue(new RunCommand(() -> tilter.jogDown(IntakeConstants.TiltStep), tilter));
+      controller.povRight().and(controller.leftBumper().negate()).whileTrue(new RunCommand(() -> tilter.jogUp(IntakeConstants.TiltStep), tilter));
+
+      controller.povRight().and(controller.leftBumper()).whileTrue(Commands.runOnce(() -> shooter.speedUp(ShooterConstants.SpeedStep), shooter));
+      controller.povLeft().and(controller.leftBumper()).whileTrue(Commands.runOnce(() -> shooter.speedDown(ShooterConstants.SpeedStep), shooter));
 
       // Feeder control
       // Left Trigger - Run Feeder and Shoot
@@ -208,12 +215,12 @@ public class FuelRobotContainer extends RobotContainer {
 //      controller.rightBumper().whileTrue(new RangeShootCmd(shooter, hood, feeder, rangeTable, drivetrain::getPose));
 
 //      controller.b().onTrue(drivetrain.followPathCommand("Line1"));
-    }
 
-    // Fetch parameters
-    controller.back().and(controller.x().negate()).toggleOnTrue(Commands.runOnce(() -> fetchParameters()));
-    // Update parameters
-    controller.back().and(controller.x()).toggleOnTrue(Commands.runOnce(() -> storeParameters()));
+      // Fetch parameters
+      controller.back().and(controller.x().negate()).toggleOnTrue(Commands.runOnce(() -> fetchParameters()));
+      // Update parameters
+      controller.back().and(controller.x()).toggleOnTrue(Commands.runOnce(() -> storeParameters()));
+    }
   }
 
   public Command getAutonomousCommand() {

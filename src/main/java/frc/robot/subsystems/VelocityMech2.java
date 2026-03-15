@@ -237,6 +237,28 @@ public class VelocityMech2 extends SubsystemBase {
 //        motor.setControl(velocityTorque.withVelocity(speed * Constants.MaxMotorRPS));
     }
 
+    public void speedUp(double speedStep)
+    {
+        targetVelocity += speedStep;
+        if (targetVelocity > Constants.MaxMotorRPStoSet)
+        {
+            targetVelocity = Constants.MaxMotorRPStoSet;
+        }
+        setSpeed(targetVelocity);
+    }
+
+    public void speedDown(double speedStep)
+    {
+        targetVelocity -= speedStep;
+        if (targetVelocity <= 0)
+        {
+            targetVelocity = 0;
+            stop();
+        }
+        else
+            setSpeed(targetVelocity);
+    }
+    
     public void stop() {
         System.out.println("SetSpeed: STOP");
         motor1.setControl(brake);
