@@ -153,13 +153,19 @@ public class PositionMech extends SubsystemBase {
         return motor.getPosition().getValue().in(Rotations);
     }
 
+    public void resetEncoders()
+    {
+        System.out.println("resetEncoders");
+        motor.setPosition(0.0);
+    }
+
     @Override
     public void periodic() {
         if (running && targetPositionChanged)
         {
             double pos = targetPosition;
             motor.setControl(positionVoltage.withPosition(pos));
-            System.out.println("setControl-periodic");
+            System.out.println(name + " Periodic");
         }
 
         double pos = getPosition();

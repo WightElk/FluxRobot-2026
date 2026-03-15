@@ -147,7 +147,7 @@ public class VelocityMech extends SubsystemBase {
         {
             String prefix = name + "/";
             SmartDashboard.putNumber(prefix + "RPM", vel);
-            System.out.println("RPM: " + velocity + " / " + vel + " / " + velocityRPM);
+//            System.out.println("RPM: " + velocity + " / " + vel + " / " + velocityRPM);
             velocity = vel;
         }
         double target = direction == Constants.Backward ? -targetVelocity : targetVelocity;
@@ -215,7 +215,7 @@ public class VelocityMech extends SubsystemBase {
         targetVelocityChanged = true;
         speed = targetVelocity;
 
-        speed = direction == Constants.Backward ? -speed : speed;
+        //speed = direction == Constants.Backward ? -speed : speed;
         //double rps = speed  * Constants.ShooterConstants.MaxMotorRPS;
 
         motor.setControl(velocityVoltage.withVelocity(speed));

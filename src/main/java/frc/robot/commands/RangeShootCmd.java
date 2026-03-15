@@ -97,7 +97,7 @@ public class RangeShootCmd extends Command {
     @Override
     public void end(boolean interrupted)
     {
-        feeder.setSpeed(IndexerConstants.FeederSpeed);
+        feeder.stop();
     }
 
     // Returns true when the command should end.

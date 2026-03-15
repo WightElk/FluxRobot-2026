@@ -52,6 +52,7 @@ public class VelocityMech2 extends SubsystemBase {
     private double targetVelocity = DefaultVelocityRPM;
     @AutoLogOutput(key = "{name}/Velocity")
     private double velocity = 0;
+    private double velocity2 = 0;
 
     private final PIDCtrl pidCtrl;
     //@AutoLogOutput(key = "{name}/pid")
@@ -65,8 +66,8 @@ public class VelocityMech2 extends SubsystemBase {
         // configs.Slot0.kS = kS;//0.01; 
         // configs.Slot0.kV = kV;//0.12;
         // configs.Slot0.kP = kP;//0.11; 
-    public static final double DefaultKP = 0.11;  // An error of 1 rotation per second results in 0.11 V output
-    public static final double DefaultKD = 0.0;
+    public static final double DefaultKP = 0.5;  // An error of 1 rotation per second results in 0.11 V output
+    public static final double DefaultKD = 0.0005;
     public static final double DefaultKI = 0.0;
     public static final double DefaultKV = 0.12; // Kraken X60 is a 500 kV motor, 500 rpm per V = 8.333 rps per V, 1/8.33 = 0.12 volts / rotation per second
     public static final double DefaultKS = 0.01; // To account for friction, add 0.1 V of static feedforward
@@ -127,6 +128,11 @@ public class VelocityMech2 extends SubsystemBase {
         targetVelocity = speed;
     }
 
+    public boolean running()
+    {
+        return running;        
+    }
+
     @Override
     public void periodic() {
         if (running && targetVelocityChanged)
@@ -134,16 +140,24 @@ public class VelocityMech2 extends SubsystemBase {
             velocityRPM = direction == Constants.Backward ? -targetVelocity : targetVelocity;
             motor1.setControl(velocityVoltage.withVelocity(velocityRPM));
             motor2.setControl(velocityVoltage.withVelocity(-velocityRPM));
-            System.out.println("setControl-periodic " + velocityRPM);
+            System.out.println(name + " setControl-periodic " + velocityRPM);
         }
 
         double vel = 60 * getVelocity();
         if (vel != velocity)
         {
             String prefix = name + "/";
-            SmartDashboard.putNumber(prefix + "RPM", vel);
-            System.out.println("RPM: " + velocity + " / " + vel + " / " + velocityRPM);
+            SmartDashboard.putNumber(prefix + "RPM 1", vel);
+//            System.out.println("RPM: " + velocity + " / " + vel + " / " + velocityRPM);
             velocity = vel;
+        }
+        vel = 60 * getVelocity2();
+        if (vel != velocity2)
+        {
+            String prefix = name + "/";
+            SmartDashboard.putNumber(prefix + "RPM 2", vel);
+ //          System.out.println("RPM: " + velocity + " / " + vel + " / " + velocityRPM);
+            velocity2 = vel;
         }
         double target = direction == Constants.Backward ? -targetVelocity : targetVelocity;
         atSpeed = Math.abs(vel - target) <= rpmDelta;
@@ -218,7 +232,7 @@ public class VelocityMech2 extends SubsystemBase {
         //double rps = speed  * Constants.ShooterConstants.MaxMotorRPS;
 
         motor1.setControl(velocityVoltage.withVelocity(speed));
-        motor1.setControl(velocityVoltage.withVelocity(speed));
+        motor2.setControl(velocityVoltage.withVelocity(-speed));
 //        .withFeedForward(feedforward))
 //        motor.setControl(velocityTorque.withVelocity(speed * Constants.MaxMotorRPS));
         double v = motor1.getVelocity().getValue().magnitude();
@@ -226,6 +240,7 @@ public class VelocityMech2 extends SubsystemBase {
     }
 
     public void stop() {
+        System.out.println("SetSpeed: STOP");
         motor1.setControl(brake);
         motor2.setControl(brake);
         reset();
@@ -234,6 +249,11 @@ public class VelocityMech2 extends SubsystemBase {
     public double getVelocity()
     {
         return motor1.getVelocity().getValue().magnitude();
+    }
+
+    public double getVelocity2()
+    {
+        return motor2.getVelocity().getValue().magnitude();
     }
 
     protected double validateVelocity(double v)
@@ -297,7 +317,8 @@ public class VelocityMech2 extends SubsystemBase {
         String prefix = name + "/";
 
         SmartDashboard.putNumber(prefix + "Set RPM", targetVelocity);
-        SmartDashboard.putNumber(prefix + "RPM", velocity);
+        SmartDashboard.putNumber(prefix + "RPM 1", velocity);
+        SmartDashboard.putNumber(prefix + "RPM 2", velocity2);
 
         SmartDashboard.putNumber(prefix + "kP", kP);
         SmartDashboard.putNumber(prefix + "kD", kD);

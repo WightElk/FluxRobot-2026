@@ -68,7 +68,7 @@ public class FuelRobotContainer extends RobotContainer {
     super(RobotConfig.FuelRobot, false);
 
     int connectedJoystickCount = connectedJoystickCount();
-//    System.out.println("connectedJoystickCount " + connectedJoystickCount);
+    System.out.println("connectedJoystickCount " + connectedJoystickCount);
     useTwoControllers = connectedJoystickCount == 2;
 
     intake = new VelocityMech(canBus, "Intake", IntakeConstants.MotorId);
@@ -160,7 +160,8 @@ public class FuelRobotContainer extends RobotContainer {
     }
     else
     {
-      controller.y().onTrue(Commands.runOnce(drivetrain::resetGyro));
+      //controller.y().onTrue(Commands.runOnce(drivetrain::resetGyro));
+      controller.x().and(controller.leftBumper()).onTrue(Commands.runOnce(() -> resetEncoders()));
 
       // Intake control
       // Right Trigger - Run intake rolller
@@ -174,11 +175,11 @@ public class FuelRobotContainer extends RobotContainer {
 
       // Feeder control
       // Left Trigger - Run Feeder and Shoot
-      controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new VelocityCmd(feeder, () -> IndexerConstants.FeederSpeed, Constants.Forward));
+      controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new VelocityCmd(feeder, () -> IndexerConstants.FeederSpeed, Constants.Backward));
 
       // Indexer control
       // Left Bumper - Run Indexer
-      controller.leftBumper().whileTrue(new VelocityCmd(indexer, () -> IndexerConstants.Speed, Constants.Backward));
+      controller.leftBumper().and(controller.x().negate()).whileTrue(new VelocityCmd(indexer, () -> IndexerConstants.Speed, Constants.Forward));
 
       // Shooter control
       // A - Shooter ON
@@ -186,7 +187,15 @@ public class FuelRobotContainer extends RobotContainer {
       // controller.a().onTrue(new ShootCommand(shooter, () -> ShooterConstants.Speed, Constants.Forward));
       // controller.b().onTrue(Commands.runOnce(shooter::stop));
       controller.start().toggleOnTrue(new ShootCommand(shooter, () -> ShooterConstants.Speed, Constants.Forward));
-      controller.start().toggleOnFalse(Commands.runOnce(shooter::stop));
+//      controller.start().toggleOnFalse(Commands.runOnce(shooter::stop));
+
+      // Shooter control
+      // A - Short Range Shooter
+      // B - Mid Shooter
+      // Y - Long Shooter
+      controller.a().onTrue(new SetShooterRangeCmd(shooter, hood, rangeTable, ShooterConstants.ShortRange));
+      controller.b().onTrue(new SetShooterRangeCmd(shooter, hood, rangeTable, ShooterConstants.MidRange));
+      controller.b().onTrue(new SetShooterRangeCmd(shooter, hood, rangeTable, ShooterConstants.LongRange));
 
       // Shooter Hood
       // Pov Up - Hood Up
@@ -194,15 +203,13 @@ public class FuelRobotContainer extends RobotContainer {
       controller.povUp().whileTrue(new RunCommand(() -> hood.jogUp(ShooterConstants.HoodStep), hood));
       controller.povDown().whileTrue(new RunCommand(() -> hood.jogDown(ShooterConstants.HoodStep), hood));
 
-      controller.rightBumper().whileTrue(new RangeShootCmd(shooter, hood, feeder, rangeTable, drivetrain::getPose));
+//      controller.rightBumper().whileTrue(new RangeShootCmd(shooter, hood, feeder, rangeTable, drivetrain::getPose));
 
-      controller.a().onTrue(Commands.runOnce(drivetrain::resetGyro));
-
-      controller.b().onTrue(drivetrain.followPathCommand("Line1"));
+//      controller.b().onTrue(drivetrain.followPathCommand("Line1"));
     }
 
     // Fetch parameters
-    controller.back().toggleOnTrue(new Command() {
+    controller.back().and(controller.x().negate()).toggleOnTrue(new Command() {
         @Override public void initialize() {
           fetchParameters();    
         }
@@ -211,7 +218,7 @@ public class FuelRobotContainer extends RobotContainer {
         }
     });
     // Update parameters
-    controller.back().and(controller.a()).toggleOnTrue(new Command() {
+    controller.back().and(controller.x()).toggleOnTrue(new Command() {
         @Override public void initialize() {
           storeParameters();
         }
@@ -236,6 +243,12 @@ public class FuelRobotContainer extends RobotContainer {
 //    return autoDriveCommand.andThen((new RunCommand(() -> elevator.moveToLevel1(), elevator)).withTimeout(2.0)).andThen(new RawTrayCommand(tray, () -> -TrayConstants.Speed));
   }
 
+  public void resetEncoders()
+  {
+    hood.resetEncoders();
+    tilter.resetEncoders();
+  }
+  
   public void storeParameters()
   {
     System.out.println("storeParameters");

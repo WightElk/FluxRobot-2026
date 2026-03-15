@@ -79,12 +79,12 @@ public final class Constants {
     public static final int FollowerId = 2;//Absent
     public static final int TiltMotorId = 20;
 
-    public static final double InSpeed = 40;
+    public static final double InSpeed = 60;
     public static final double OutSpeed = 20;
 
-    public static final double TiltStep = 2;
-    public static final double InTiltPosition = 2;
-    public static final double OutTiltPosition = 4;
+    public static final double TiltStep = 1;
+    public static final double InTiltPosition = 0;
+    public static final double OutTiltPosition = -17;
 
     public static final double MaxMotorRPS = 0.5 * MaxMotorRPM / 60.0;
 
@@ -99,7 +99,7 @@ public final class Constants {
     public static final double MaxMotorRPS = 0.5 * MaxMotorRPM / 60.0;
 
     public static final double Speed = 50;  // Backward
-    public static final double FeederSpeed = 60;
+    public static final double FeederSpeed = -45;
 
     public static final double BackwardSpeed = -3000;//-1.5;//ROLLER_ALGAE_OUT
     public static final int ROLLER_MOTOR_CURRENT_LIMIT = 60;
@@ -111,14 +111,16 @@ public final class Constants {
     public static final int RightMotorId = 11;
     public static final int HoodMotorId = 12;
 
-    public static final double Speed = 90;//100;
+    public static final double Speed = 50;//100;
     public static final double SpeedDown = -2500;
 
     public static final int ShortRange = 1;
     public static final int MidRange = 3;
-    public static final int LongRange = 6;
+    public static final int LongRange = 5;
 
-    public static final double HoodStep = 1;
+    public static final double HoodStep = 0.5;
+    public static final double MinElevation = 0;
+    public static final double MaxElevation = 20;
 
     public static final int SHOOT_MOTOR_CURRENT_LIMIT = 40;
     public static final double SHOOT_MOTOR_VOLTAGE_COMP = 10;

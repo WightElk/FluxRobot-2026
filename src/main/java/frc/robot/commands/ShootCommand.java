@@ -34,20 +34,29 @@ public class ShootCommand extends Command {
     @Override
     public void initialize()
     {
-        velocityMech.reset();
-        double v = speed.getAsDouble();
-        if (direction != Constants.Forward)
-            v = -v;
-        velocityMech.setTargetSpeed(v);
+        if (velocityMech.running())
+        {
+            velocityMech.stop();
+        }
+        else
+        {
+            velocityMech.reset();
+
+            double v = speed.getAsDouble();
+            if (direction != Constants.Forward)
+                v = -v;
+            velocityMech.setTargetSpeed(v);
+            velocityMech.setSpeed(v);
+        }
     }
 
     @Override
     public void execute()
     {
-        double v = speed.getAsDouble();
-        if (direction != Constants.Forward)
-            v = -v;
-        velocityMech.setSpeed(v);
+        // double v = speed.getAsDouble();
+        // if (direction != Constants.Forward)
+        //     v = -v;
+        // velocityMech.setSpeed(v);
     }
   
     @Override
