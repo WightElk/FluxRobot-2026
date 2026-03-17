@@ -418,12 +418,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      *     in the form [x, y, theta]ᵀ, with units in meters and radians.
      */
     @Override
-    public void addVisionMeasurement(
-        Pose2d visionRobotPoseMeters,
-        double timestampSeconds,
-        Matrix<N3, N1> visionMeasurementStdDevs
-    ) {
-        super.addVisionMeasurement(visionRobotPoseMeters, Utils.fpgaToCurrentTime(timestampSeconds), visionMeasurementStdDevs);
+    public void addVisionMeasurement(Pose2d visionRobotPoseMeters, double timestampSeconds, Matrix<N3, N1> visionMeasurementStdDevs)
+    {
+        double currentTime = Utils.fpgaToCurrentTime(timestampSeconds);
+        super.addVisionMeasurement(visionRobotPoseMeters, currentTime, visionMeasurementStdDevs);
+        poseEstimator.addVisionMeasurement(visionRobotPoseMeters, currentTime, visionMeasurementStdDevs);
     }
 
     protected void initOdometry(Translation2d frontLeft, Translation2d frontRight, Translation2d backLeft, Translation2d backRight) {
@@ -443,6 +442,13 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         initPose = new Pose2d(x, y, alliance == Alliance.Blue ? kBlueAlliancePerspectiveRotation : kRedAlliancePerspectiveRotation);
         odometry.resetPose(initPose);
         poseEstimator.resetPose(initPose);
+
+    }
+
+    public void resetPose(Pose2d pose, boolean resetSimPose) {
+        super.resetPose(pose);
+
+        poseEstimator.resetPosition(getGyroYaw(), getState().ModulePositions, pose);
     }
 
     /** Get the estimated pose of the swerve drive on the field. */
@@ -472,6 +478,15 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     public Rotation2d getRotation() {
         return gyro.getRotation2d();  //odometry.getPoseMeters();
     }
+
+    /**
+     * Reset the estimated pose of the swerve drive on the field.
+     *
+     * @param pose New robot pose.
+     * @param resetPose If the simulated robot pose should also be reset. This effectively
+     *     teleports the robot and should only be used during the setup of the simulation world.
+     */
+
 
     public void resetOdometry(Pose2d pose) {
         gyro.reset();

@@ -38,7 +38,19 @@ public class ShootToHubCmd extends Command
     @Override
     public void execute()
     {
+        // Is in shooting area?
+        // Get distance and yaw
+        // Shooter to distance
+        // Drivetrain to yaw
+
+        // Wait until at setpoint
+        // Shoot
 /*
+        if (shooter.atTarget() && drivetrain.atTargetAngle())
+        {
+            indexer`.shoot();
+        }
+
         // Calculate drivetrain commands from Joystick values
         double forward = -controller.getLeftY() * Constants.Swerve.kMaxLinearSpeed;
         double strafe = -controller.getLeftX() * Constants.Swerve.kMaxLinearSpeed;
@@ -77,7 +89,7 @@ public class ShootToHubCmd extends Command
 
         // Put debug information to the dashboard
         SmartDashboard.putBoolean("Vision Target Visible", targetVisible);
-*/   
+        */
     }
 
     @Override

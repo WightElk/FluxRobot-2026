@@ -38,6 +38,7 @@ public final class Constants {
   public static final int Backward = 1;
 
   public static final String fieldLayoutFile = "2026-rebuilt-welded.json";
+  public static final String teeamFieldLayoutFile = "2026-team-field.json";
   //"2025-reefscape-andymark.json";
 
   public static final double robotLength = 34;
@@ -261,21 +262,32 @@ public final class Constants {
    * Vision system constants (Coral robot only - single camera).
    */
   public static final class VisionConstants {
-    /** PhotonVision camera name (must match name in PhotonVision UI) */
-    public static final String CAMERA_NAME = "Logitech_Webcam_C930e";
-    public static final String CameraNameLeft = "ThriftyCam";
-    public static final String CameraNameRight = "ThriftyCam";
+    // PhotonVision camera name from PhotonVision UI
+    public static final String CameraNameCenter = "Logitech_Webcam_C930e";
+    public static final String CameraNameLeft = "ThriftyCam1";
+    public static final String CameraNameRight = "ThriftyCam2";
 
-    public static final Transform3d robotToCamCenter = new Transform3d(new Translation3d(0.5, 0.0, 0.5), new Rotation3d(0, 0, 0));
-    public static final Transform3d robotToCamLeft = new Transform3d(new Translation3d(0.5, 0.0, 0.5), new Rotation3d(0, 0, 0));
-    public static final Transform3d robotToCamRight = new Transform3d(new Translation3d(0.5, 0.0, 0.5), new Rotation3d(0, 0, 0));
+    public static final Translation3d robotToCamPosCenter = new Translation3d(
+      Units.inchesToMeters(-12), 0.0, Units.inchesToMeters(20));
+    public static final Rotation3d robotToCamRotCenter = new Rotation3d(0, 0, 0);
 
-    public static double ReefPolesGap = Units.feetToMeters(13.0);
+    public static final Translation3d robotToCamPosLeft = new Translation3d(
+      Units.inchesToMeters(-8), Units.inchesToMeters(10.0), Units.inchesToMeters(15));
+    public static final Rotation3d robotToCamRotLeft = new Rotation3d(0, 0, Units.degreesToRadians(90));
+
+    public static final Translation3d robotToCamPosRight = new Translation3d(
+      Units.inchesToMeters(-8), Units.inchesToMeters(-10.0), Units.inchesToMeters(15));
+    public static final Rotation3d robotToCamRotRight = new Rotation3d(0, 0, Units.degreesToRadians(-90));
 
     // The standard deviations of our vision estimated poses, which affect correction rate
     // (Fake values. Experiment and determine estimation noise on an actual robot.)
     public static final Matrix<N3, N1> kSingleTagStdDevs = VecBuilder.fill(4, 4, 8);
     public static final Matrix<N3, N1> kMultiTagStdDevs = VecBuilder.fill(0.5, 0.5, 1);
+
+    // Angle tolerance for alignment completion (degrees)
+    public static final double AngleTolerance = 2.0;
+
+    public static double ReefPolesGap = Units.feetToMeters(13.0);
 
     // Distance to AprilTag in inches
     public static final double TargetDistance = 27;
@@ -285,9 +297,6 @@ public final class Constants {
 
     /** P-controller gain for forward drive control */
     public static final double DRIVE_P = 0.15;//0.1
-
-    /** Angle tolerance for alignment completion (degrees) */
-    public static final double ANGLE_TOLERANCE = 2.0;
 
     /** Target area percentage for desired distance (~1.5-2m away) */
     public static final double AREA_TARGET = 8.0;
@@ -309,19 +318,6 @@ public final class Constants {
 
     /** Maximum yaw error before stopping forward drive (degrees) */
     public static final double MAX_YAW_ERROR_FOR_DRIVE = 15.0;
-
-    public static final Pose3d cameraPoseFront = new Pose3d (
-      new Translation3d(0.0, 0.0, 0.0), 
-      new Rotation3d(0.0, 0.0, 0.0)
-    );
-
-    public static final Pose3d cameraPoseRear = new Pose3d (
-      new Translation3d(0.0, 0.0, 0.0), 
-      new Rotation3d(0.0, 0.0, Math.PI)
-    );
-
-    public static final double sizeX = 23.0;
-    public static final double sizeY = 23.0;
 
     public static final double distanceToTag = 1.0;
 

@@ -343,7 +343,7 @@ delta x, y, yaw
 
         // Calculate rotation speed (align with target)
         double calculatedRotation = -yawError * VisionConstants.ROTATION_P;
-        if (Math.abs(yawError) > VisionConstants.ANGLE_TOLERANCE) {
+        if (Math.abs(yawError) > VisionConstants.AngleTolerance) {
             if (Math.abs(calculatedRotation) < VisionConstants.MIN_ROTATION_SPEED) {
                 calculatedRotation = Math.copySign(VisionConstants.MIN_ROTATION_SPEED, calculatedRotation);
             }
@@ -455,6 +455,6 @@ delta x, y, yaw
         double areaError = Math.abs(targetArea - vision.getTargetArea());
 
         //TODO atGoal()
-        return yawError < VisionConstants.ANGLE_TOLERANCE && areaError < VisionConstants.AREA_TOLERANCE;
+        return yawError < VisionConstants.AngleTolerance && areaError < VisionConstants.AREA_TOLERANCE;
     }
 }

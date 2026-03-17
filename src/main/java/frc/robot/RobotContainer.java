@@ -144,7 +144,7 @@ public class RobotContainer {
     }
 
     // Single camera vision for AprilTag detection
-    vision = visionEnabled ? new VisionSubsystem(VisionConstants.CAMERA_NAME, VisionConstants.CameraNameLeft, VisionConstants.CameraNameRight, fieldLayout, drivetrain::addVisionMeasurement) : null;
+    vision = visionEnabled ? new VisionSubsystem(VisionConstants.CameraNameCenter, VisionConstants.CameraNameLeft, VisionConstants.CameraNameRight, fieldLayout, drivetrain::addVisionMeasurement) : null;
 
     SmartDashboard.putNumber("Start_X", xStartPos);
     SmartDashboard.putNumber("Middle_X", xMiddlePos);
@@ -346,3 +346,11 @@ public class RobotContainer {
         // vision.resetSimPose(startPose);
     }
 }
+
+/*From photonVision example
+        if (controller.getBButtonPressed()) {
+            var disturbance =
+                    new Transform2d(new Translation2d(1.0, 1.0), new Rotation2d(0.17 * 2 * Math.PI));
+            drivetrain.resetPose(drivetrain.getPose().plus(disturbance), false);
+        }
+*/
