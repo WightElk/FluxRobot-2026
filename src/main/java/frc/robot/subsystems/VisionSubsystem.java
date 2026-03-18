@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import java.util.List;
 import java.util.Optional;
 
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
@@ -30,7 +31,7 @@ import frc.robot.Robot;
  * Provides target detection and tracking for autonomous alignment.
  */
 public class VisionSubsystem extends SubsystemBase {
-    private int cameraCountToUse = 1;
+    private int cameraCountToUse = 3;
     private boolean useProcessLast = false;
     
     private PhotonPipelineResult latestResult;
@@ -46,6 +47,13 @@ public class VisionSubsystem extends SubsystemBase {
     private final PhotonPoseEstimator estimatorRight;
     private Matrix<N3, N1> curStdDevs;
     private final EstimateConsumer estConsumer;
+
+    @AutoLogOutput(key = "Center/ResultCount")
+    private int resultCountCenter = 0;
+    @AutoLogOutput(key = "Left/ResultCount")
+    private int resultCountLeft = 0;
+    @AutoLogOutput(key = "Right/ResultCount")
+    private int resultCountRight = 0;
 
     private AprilTagFieldLayout fieldLayout;
 
@@ -119,6 +127,13 @@ public class VisionSubsystem extends SubsystemBase {
                 if (disconnectCount > DISCONNECT_THRESHOLD)
                     connected = false;
             }
+
+            if (camera == cameraCenter)
+                resultCountCenter = results.size();
+            if (camera == cameraLeft)
+                resultCountLeft = results.size();
+            if (camera == cameraRight)
+                resultCountRight = results.size();
 
             Optional<EstimatedRobotPose> visionEst = Optional.empty();
             for (var change : results)

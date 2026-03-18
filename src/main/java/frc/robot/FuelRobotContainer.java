@@ -3,6 +3,8 @@ package frc.robot;
 import java.util.List;
 import java.util.function.Supplier;
 
+import org.littletonrobotics.junction.AutoLogOutput;
+
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -63,6 +65,8 @@ public class FuelRobotContainer extends RobotContainer {
     public final DriveForwardAuto autoDriveForward = new DriveForwardAuto(drivetrain);
     
     private SendableChooser<Command> autoCommandChooser;
+    //@AutoLogOutput(key = "PathChooser")
+    private SendableChooser<String> pathChooser;
 
   public FuelRobotContainer() {
     super(RobotConfig.FuelRobot, false);
@@ -84,16 +88,16 @@ public class FuelRobotContainer extends RobotContainer {
 //    Supplier<Pose2d> poseProvider = drivetrain::getPose;
 
     //autoDriveCommand = new DriveToPoseCommand(drivetrain, goalPoseSupplier, poseProvider, true);
-  
+      // Build an auto chooser. This will use Commands.none() as the default option.
+    autoCommandChooser = AutoBuilder.buildAutoChooser();
+    pathChooser = new SendableChooser<>();
+    initPaths();
+    initAutoCommands();
+
     configureBindings();
 
     storeParameters();
-  
-    // Build an auto chooser. This will use Commands.none() as the default option.
-    autoCommandChooser = AutoBuilder.buildAutoChooser();
-
-    initAutoCommands();
-  }
+    }
 
   public void initRobot() {
     FollowPathCommand.warmupCommand().schedule();
@@ -167,7 +171,8 @@ public class FuelRobotContainer extends RobotContainer {
     else
     {
       //controller.y().onTrue(Commands.runOnce(drivetrain::resetGyro));
-      controller.x().and(controller.leftBumper()).onTrue(Commands.runOnce(() -> resetEncoders()));
+      //controller.x().and(controller.leftBumper()).onTrue(Commands.runOnce(() -> resetEncoders()));
+      controller.x().onTrue(Commands.runOnce(() -> resetEncoders()));
 
       // Intake control
       // Right Trigger - Run intake rolller
@@ -176,11 +181,13 @@ public class FuelRobotContainer extends RobotContainer {
       // Intake Tilt control
       // Pov Left - Push out intake
       // Pov Down - Pull in intake
-      controller.povLeft().and(controller.leftBumper().negate()).whileTrue(new RunCommand(() -> tilter.jogDown(IntakeConstants.TiltStep), tilter));
-      controller.povRight().and(controller.leftBumper().negate()).whileTrue(new RunCommand(() -> tilter.jogUp(IntakeConstants.TiltStep), tilter));
+      // controller.povLeft().and(controller.leftBumper().negate()).whileTrue(new RunCommand(() -> tilter.jogDown(IntakeConstants.TiltStep), tilter));
+      // controller.povRight().and(controller.leftBumper().negate()).whileTrue(new RunCommand(() -> tilter.jogUp(IntakeConstants.TiltStep), tilter));
 
-      controller.povRight().and(controller.leftBumper()).whileTrue(Commands.runOnce(() -> shooter.speedUp(ShooterConstants.SpeedStep), shooter));
-      controller.povLeft().and(controller.leftBumper()).whileTrue(Commands.runOnce(() -> shooter.speedDown(ShooterConstants.SpeedStep), shooter));
+      // controller.povRight().and(controller.leftBumper()).whileTrue(Commands.runOnce(() -> shooter.speedUp(ShooterConstants.SpeedStep), shooter));
+      // controller.povLeft().and(controller.leftBumper()).whileTrue(Commands.runOnce(() -> shooter.speedDown(ShooterConstants.SpeedStep), shooter));
+      controller.povRight().whileTrue(Commands.runOnce(() -> shooter.speedUp(ShooterConstants.SpeedStep), shooter));
+      controller.povLeft().whileTrue(Commands.runOnce(() -> shooter.speedDown(ShooterConstants.SpeedStep), shooter));
 
       // Feeder control
       // Left Trigger - Run Feeder and Shoot
@@ -214,12 +221,12 @@ public class FuelRobotContainer extends RobotContainer {
 
 //      controller.rightBumper().whileTrue(new RangeShootCmd(shooter, hood, feeder, rangeTable, drivetrain::getPose));
 
-//      controller.b().onTrue(drivetrain.followPathCommand("Line1"));
+      controller.rightBumper().whileTrue(drivetrain.followPathCommand(pathChooser.getSelected()));
 
       // Fetch parameters
       controller.back().and(controller.x().negate()).toggleOnTrue(Commands.runOnce(() -> fetchParameters()));
       // Update parameters
-      controller.back().and(controller.x()).toggleOnTrue(Commands.runOnce(() -> storeParameters()));
+      controller.back().and(controller.leftBumper()).toggleOnTrue(Commands.runOnce(() -> storeParameters()));
     }
   }
 
@@ -237,6 +244,7 @@ public class FuelRobotContainer extends RobotContainer {
 
   public void resetEncoders()
   {
+    drivetrain.setInitPose(Constants.Paths.InitPos.getX(), yMaxPos, fieldLength);
     hood.resetEncoders();
     tilter.resetEncoders();
   }
@@ -276,8 +284,20 @@ public class FuelRobotContainer extends RobotContainer {
     return connectedJoystickCount;
   }
 
+  protected void initPaths()
+  {
+    pathChooser = new SendableChooser<>();
+
+    for (int i = 1; i < Constants.Paths.Paths.length; ++i)
+    {
+      pathChooser.addOption(Constants.Paths.Paths[i], Constants.Paths.Paths[i]);
+    }
+  }
+
   protected void initAutoCommands()
   {
+    autoCommandChooser = AutoBuilder.buildAutoChooser();
+
     if (Constants.AutoConstants.commands.length > 0)
     {
       Command cmd = new PathPlannerAuto(Constants.AutoConstants.commands[0][1]);
@@ -314,5 +334,4 @@ public class FuelRobotContainer extends RobotContainer {
     // Prevent the path from being flipped if the coordinates are already correct
     path.preventFlipping = true;
   }
-
 }

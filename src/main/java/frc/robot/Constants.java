@@ -16,7 +16,9 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
@@ -263,21 +265,21 @@ public final class Constants {
    */
   public static final class VisionConstants {
     // PhotonVision camera name from PhotonVision UI
-    public static final String CameraNameCenter = "Logitech_Webcam_C930e";
-    public static final String CameraNameLeft = "ThriftyCam1";
-    public static final String CameraNameRight = "ThriftyCam2";
+    public static final String CameraNameCenter = "OV9281-5";
+    public static final String CameraNameLeft = "OV9281-2";
+    public static final String CameraNameRight = "OV9281-4";
 
     public static final Translation3d robotToCamPosCenter = new Translation3d(
-      Units.inchesToMeters(-12), 0.0, Units.inchesToMeters(20));
-    public static final Rotation3d robotToCamRotCenter = new Rotation3d(0, 0, 0);
+      Units.inchesToMeters(-11.5), 0.0, Units.inchesToMeters(21.875));
+    public static final Rotation3d robotToCamRotCenter = new Rotation3d(0, Units.degreesToRadians(-10), 0);
 
     public static final Translation3d robotToCamPosLeft = new Translation3d(
-      Units.inchesToMeters(-8), Units.inchesToMeters(10.0), Units.inchesToMeters(15));
-    public static final Rotation3d robotToCamRotLeft = new Rotation3d(0, 0, Units.degreesToRadians(90));
+      Units.inchesToMeters(-1.875), Units.inchesToMeters(16.375), Units.inchesToMeters(20.875));
+    public static final Rotation3d robotToCamRotLeft = new Rotation3d(0, 0, Units.degreesToRadians(30));
 
     public static final Translation3d robotToCamPosRight = new Translation3d(
-      Units.inchesToMeters(-8), Units.inchesToMeters(-10.0), Units.inchesToMeters(15));
-    public static final Rotation3d robotToCamRotRight = new Rotation3d(0, 0, Units.degreesToRadians(-90));
+      Units.inchesToMeters(-1.875), Units.inchesToMeters(-16.375), Units.inchesToMeters(20.875));
+    public static final Rotation3d robotToCamRotRight = new Rotation3d(0, 0, Units.degreesToRadians(-30));
 
     // The standard deviations of our vision estimated poses, which affect correction rate
     // (Fake values. Experiment and determine estimation noise on an actual robot.)
@@ -353,6 +355,19 @@ public final class Constants {
       {"Center", "CenterAuto"},
       {"Left", "BlueLeftAuto"}
 //      {"Right", "LeftPath"}
+    };
+  }
+
+  public static class Paths {
+    public static final Translation2d InitPos = new Translation2d(Units.inchesToMeters(24 + 27.0 / 2.0), Units.inchesToMeters(317.375 / 2));
+    public static final Rotation2d InitRot = Rotation2d.kZero;
+
+    public static final String[] Paths = {
+      "Line1",
+      "Line2",
+      "LeftPath",
+      "LineRot1",
+      "Rot1"
     };
   }
 

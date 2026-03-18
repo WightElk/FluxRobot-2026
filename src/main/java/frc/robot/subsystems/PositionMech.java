@@ -156,7 +156,7 @@ public class PositionMech extends SubsystemBase {
     public void resetEncoders()
     {
         System.out.println("resetEncoders");
-        motor.setPosition(0.0);
+        motor.setPosition(Rotations.of(0.0));
     }
 
     @Override
@@ -222,8 +222,10 @@ public class PositionMech extends SubsystemBase {
     public void jogDown(double step)
     {
         double pos = getPosition();
+        System.out.println("jogDown " + pos + " / " + step);
         pos -= step;
         targetPosition = pos;
+        
         motor.setControl(positionVoltage.withPosition(pos));
     }
     
