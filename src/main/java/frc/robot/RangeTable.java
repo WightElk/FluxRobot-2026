@@ -1,5 +1,7 @@
 package frc.robot;
 
+import edu.wpi.first.math.util.Units;
+
 public class RangeTable
 {
     public class Range
@@ -27,6 +29,14 @@ public class RangeTable
 // Elevation
 // 4.25 in = 20 => k = 4.7
     private Range[] ranges =
+    {
+        new Range(Units.inchesToMeters(47.75 / 2 + 8), 2600.0 / 60.0, 0), // 0
+        new Range(Units.inchesToMeters(47.75 / 2 + 60), 2600.0 / 60.0, 7.0/16), // 7/16
+        new Range(Units.inchesToMeters(47.75 / 2 + 120), 2600.0 / 60.0, 7), // 1.25
+        new Range(Units.inchesToMeters(1.4142 * 47.75 / 2 + 152), 3100.0 / 60.0, 10.58) // 1.5
+    };
+
+    private Range[] rangesPrev =
     {
         new Range(17.5, 2350.0 / 60.0, 0), //0
         new Range(47, 2350.0 / 60.0, 4.7), //1
@@ -75,4 +85,29 @@ public class RangeTable
         
         return range;
     }
+/*
+    public Range getRangeInterp(double distance)
+    {
+        Range range = null;
+        for (int i = 0; i < ranges.length; ++i)
+        {
+          if (distance <= ranges[i].distance)
+          {
+            range = ranges[i];
+            break;
+          }
+        }
+        if (range == null)
+        {
+            range = ranges[ranges.length - 1];
+        }
+        else
+        {
+            range.distance;
+            range.getElevationPreset
+        }
+        
+        return range;
+    }
+*/        
 }

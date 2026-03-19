@@ -17,6 +17,7 @@ import com.pathplanner.lib.path.Waypoint;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -67,6 +68,7 @@ public class FuelRobotContainer extends RobotContainer {
     private SendableChooser<Command> autoCommandChooser;
     //@AutoLogOutput(key = "PathChooser")
     private SendableChooser<String> pathChooser;
+    private SendableChooser<Pose2d> initPoseChooser;
 
   public FuelRobotContainer() {
     super(RobotConfig.FuelRobot, false);
@@ -89,8 +91,7 @@ public class FuelRobotContainer extends RobotContainer {
 
     //autoDriveCommand = new DriveToPoseCommand(drivetrain, goalPoseSupplier, poseProvider, true);
       // Build an auto chooser. This will use Commands.none() as the default option.
-    autoCommandChooser = AutoBuilder.buildAutoChooser();
-    pathChooser = new SendableChooser<>();
+    initPosition();
     initPaths();
     initAutoCommands();
 
@@ -282,6 +283,20 @@ public class FuelRobotContainer extends RobotContainer {
       if (DriverStation.isJoystickConnected(i))
         connectedJoystickCount++;
     return connectedJoystickCount;
+  }
+
+  protected void initPosition()
+  {
+    initPoseChooser = new SendableChooser<>();
+
+    for (int i = 0; i < Constants.Paths.InitNames.length; ++i)
+    {
+      Pose2d pose = new Pose2d(Constants.Paths.InitPositions[i], Constants.Paths.InitRotations[i]);
+      if (i == 0)
+        initPoseChooser.setDefaultOption(Constants.Paths.InitNames[i], pose);
+      else
+        initPoseChooser.addOption(Constants.Paths.InitNames[i], pose);
+    }
   }
 
   protected void initPaths()

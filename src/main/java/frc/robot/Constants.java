@@ -58,6 +58,15 @@ public final class Constants {
   public static final double VelocityCurrentLimit = 40.0;
   public static final double PositionCurrentLimit = 40.0;
 
+    public static final class Robot {
+        public static final double FrameLength = Units.inchesToMeters(27);
+        public static final double FrameWidth = Units.inchesToMeters(27);
+        public static final double BumperWidth = Units.inchesToMeters(3.5);
+
+        public static final double Length = FrameWidth + 2 * BumperWidth;  //34
+        public static final double Width = FrameLength + 2 * BumperWidth;  //34
+    }
+
   public static final class DriveConstants {
     public static final double AutoModeSpeed = 0.8;  // Move backward to driver station
     public static final double AutoModeDriveTime = 2.0;  // In seconds
@@ -369,6 +378,39 @@ public final class Constants {
       "LineRot1",
       "Rot1"
     };
+
+    public static final String[] InitNames = {
+      "Test",
+      "Left-Blue",
+      "Center-Blue",
+      "Right-Blue",
+      "Left-Red",
+      "Center-Red",
+      "Right-Red"
+    };
+    public static final Translation2d[] InitPositions = {
+      new Translation2d(0, 0),
+      //Blue
+      new Translation2d(0, 0),
+      new Translation2d(0, 0),
+      new Translation2d(0, 0),
+      //Red
+      new Translation2d(0, 0),
+      new Translation2d(0, 0),
+      new Translation2d(0, 0),
+    };
+    public static final Rotation2d[] InitRotations = {
+      new Rotation2d(1, 0),
+      //Blue
+      new Rotation2d(1, 0),
+      new Rotation2d(1, 0),
+      new Rotation2d(1, 0),
+      //Red
+      new Rotation2d(-1, 0),
+      new Rotation2d(-1, 0),
+      new Rotation2d(-1, 0),
+    };
+  
   }
 
   public static class LightConstants {

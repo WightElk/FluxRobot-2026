@@ -13,6 +13,7 @@ import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.PositionVoltage;
@@ -35,7 +36,9 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.ShooterConstants;
@@ -349,4 +352,36 @@ public class PositionMech extends SubsystemBase {
 
         pidCtrl.pid(kP, kD, kI);
     }
+
+/*
+    private final DutyCycleOut calibrationRequest = new DutyCycleOut(-0.1)
+        .withIgnoreHardwareLimits(true)
+        .withIgnoreSoftwareLimits(true);
+
+    // Trigger to detect when the elevator drives into a hard stop.
+    public final Trigger isHardStop = new Trigger(() -> {
+        return leaderMotorVelocity.getValue().abs(RotationsPerSecond) < 1 &&
+            leaderMotorTorqueCurrent.getValue().abs(Amps) > 10;
+    }).debounce(0.1);
+
+
+    //  * Recalibrates the elevator zero point. This slowly drives the elevator
+    //  * down until we see a drop in velocity and a spike in stator current,
+    //  * indicating that we've hit a hard stop.
+    //  *
+    //  * @return Command to run
+    public Command calibrateZero() {
+        return run(() -> {
+            motor.setControl(calibrationRequest);
+        })
+        .until(isHardStop)
+        .andThen(
+            manualDrive(() -> 0.0).withTimeout(0.25)
+                .finallyDo(() -> {
+                    leaderMotor.setPosition(Rotations.of(0));
+                    followerMotor.setPosition(Rotations.of(0));
+                })
+        );
+    }
+ */
 }
