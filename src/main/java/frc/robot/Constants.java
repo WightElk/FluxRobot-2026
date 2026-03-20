@@ -48,7 +48,7 @@ public final class Constants {
   public static int TimePeriodMsec = 20;  // in seconds
   public static double TimePeriod = 0.001 * TimePeriodMsec;  // in milliseconds
 
-  public static final double MaxSpeedCoef = 0.75;
+  public static final double MaxSpeedCoef = 0.8;
   public static final double MaxMotorRPM = 6000.0;  //6380
   public static final double MaxMotorRPS = 0.5 * MaxMotorRPM / 60.0;
 
