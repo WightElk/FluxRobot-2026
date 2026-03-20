@@ -445,6 +445,13 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     }
 
+    public void setInitPose(Pose2d pose)
+    {
+        initPose = pose;
+        odometry.resetPose(initPose);
+        poseEstimator.resetPose(initPose);
+    }
+
     public void resetPose(Pose2d pose, boolean resetSimPose) {
         super.resetPose(pose);
 

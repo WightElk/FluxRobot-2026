@@ -226,6 +226,7 @@ public class VelocityMech2 extends SubsystemBase {
 
     public void setSpeed(double speed) {
         targetVelocityChanged = true;
+        running = true;
         speed = targetVelocity;
 
         speed = direction == Constants.Backward ? -speed : speed;

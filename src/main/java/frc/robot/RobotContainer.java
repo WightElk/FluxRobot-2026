@@ -58,7 +58,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
-  private double MaxSpeed = 0.5 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
+  private double MaxSpeed = Constants.MaxSpeedCoef * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
   private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
 
   public final SwerveDrivetrainConstants DrivetrainConstants;
@@ -217,6 +217,7 @@ public class RobotContainer {
           yMaxPos = yMax;
         //if (changed)
           //sensitivityPos.set(xStartPos, xMiddlePos, yStartPos, yMiddlePos, yMaxPos);
+        //double dir = drivetrain.alliance == Alliance.Blue ? 1 : -1;
 
         SmartDashboard.putNumber("Joystick_X", driverController.getLeftY());
         SmartDashboard.putNumber("Joystick_Y", driverController.getLeftX());
@@ -225,7 +226,8 @@ public class RobotContainer {
         SmartDashboard.putNumber("Joystick_OutY", -sensitivityPos.transfer(driverController.getLeftX()));
         
         //new InstantCommand(() -> drivetrain.resetOdometry(move11.getInitialPose()))
-        double maxSpeed = drivetrain.alliance == Alliance.Red ? -MaxSpeed : MaxSpeed;
+        //TODO Hudson 1st: RED controller ran opposite
+        double maxSpeed = drivetrain.alliance == Alliance.Red ? MaxSpeed : MaxSpeed;
         
         return drive.withVelocityX(
             // Drive forward with negative Y (forward)

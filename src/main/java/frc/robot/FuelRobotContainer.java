@@ -35,6 +35,7 @@ import frc.robot.subsystems.VelocitySubsystem;
 import frc.robot.subsystems.PositionMech;
 import frc.robot.subsystems.VelocityMech;
 import frc.robot.autos.DriveForwardAuto;
+import frc.robot.commands.Autos;
 import frc.robot.commands.FeederCommand;
 import frc.robot.commands.IndexerCommand;
 import frc.robot.commands.IntakeCommand;
@@ -70,8 +71,11 @@ public class FuelRobotContainer extends RobotContainer {
     private SendableChooser<String> pathChooser;
     private SendableChooser<Pose2d> initPoseChooser;
 
-  public FuelRobotContainer() {
-    super(RobotConfig.FuelRobot, false);
+    public boolean releaseVersion = true;
+
+  public FuelRobotContainer(boolean releaseVersion) {
+    super(RobotConfig.FuelRobot, true);
+    this.releaseVersion = releaseVersion;
 
     int connectedJoystickCount = connectedJoystickCount();
     System.out.println("connectedJoystickCount " + connectedJoystickCount);
@@ -97,6 +101,9 @@ public class FuelRobotContainer extends RobotContainer {
 
     configureBindings();
 
+    resetEncoders();
+    drivetrain.setInitPose(initPoseChooser.getSelected());
+    
     storeParameters();
     }
 
@@ -108,6 +115,7 @@ public class FuelRobotContainer extends RobotContainer {
   protected void configureBindings() {
     super.configureBindings();
 
+    useTwoControllers = releaseVersion ? true : useTwoControllers;
     CommandXboxController controller = useTwoControllers ? operatorController : driverController;
 
     if (useTwoControllers)
@@ -141,10 +149,15 @@ public class FuelRobotContainer extends RobotContainer {
 
       // Shooter and Feeder control
       // Right Trigger - Run Feeder and Shoot
-      controller.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(new VelocityCmd(feeder, () -> IndexerConstants.FeederSpeed, Constants.Backward));
+//        controller.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(new VelocityCmd(feeder, () -> IndexerConstants.FeederSpeed, Constants.Backward));
       // Left Trigger  - Aim at Hub then Run Feeder and Shoot
-//      controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new ShootToHubCmd(shooter, hood, feeder, drivetrain::getPose));
-      controller.rightBumper().whileTrue(new VelocityCmd(indexer, () -> IndexerConstants.Speed, Constants.Backward));
+//      controller.rightBumper().whileTrue(new VelocityCmd(indexer, () -> IndexerConstants.Speed, Constants.Forward));
+
+      //      controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new ShootToHubCmd(shooter, hood, feeder, drivetrain::getPose));
+
+      controller.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(Commands.parallel(
+        new VelocityCmd(feeder, () -> IndexerConstants.FeederSpeed, Constants.Backward),
+        new VelocityCmd(indexer, () -> IndexerConstants.Speed, Constants.Forward)));
 
       // Shooter control
       // A - Shooter ON
@@ -182,14 +195,17 @@ public class FuelRobotContainer extends RobotContainer {
       // Intake Tilt control
       // Pov Left - Push out intake
       // Pov Down - Pull in intake
-      // controller.povLeft().and(controller.leftBumper().negate()).whileTrue(new RunCommand(() -> tilter.jogDown(IntakeConstants.TiltStep), tilter));
-      // controller.povRight().and(controller.leftBumper().negate()).whileTrue(new RunCommand(() -> tilter.jogUp(IntakeConstants.TiltStep), tilter));
+      controller.povLeft().and(controller.leftBumper().negate()).whileTrue(new RunCommand(() -> tilter.jogDown(IntakeConstants.TiltStep), tilter));
+      controller.povRight().and(controller.leftBumper().negate()).whileTrue(new RunCommand(() -> tilter.jogUp(IntakeConstants.TiltStep), tilter));
 
       // controller.povRight().and(controller.leftBumper()).whileTrue(Commands.runOnce(() -> shooter.speedUp(ShooterConstants.SpeedStep), shooter));
       // controller.povLeft().and(controller.leftBumper()).whileTrue(Commands.runOnce(() -> shooter.speedDown(ShooterConstants.SpeedStep), shooter));
-      controller.povRight().whileTrue(Commands.runOnce(() -> shooter.speedUp(ShooterConstants.SpeedStep), shooter));
-      controller.povLeft().whileTrue(Commands.runOnce(() -> shooter.speedDown(ShooterConstants.SpeedStep), shooter));
 
+      if (false)
+      {
+        controller.povRight().whileTrue(Commands.runOnce(() -> shooter.speedUp(ShooterConstants.SpeedStep), shooter));
+        controller.povLeft().whileTrue(Commands.runOnce(() -> shooter.speedDown(ShooterConstants.SpeedStep), shooter));
+      }
       // Feeder control
       // Left Trigger - Run Feeder and Shoot
       controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new VelocityCmd(feeder, () -> IndexerConstants.FeederSpeed, Constants.Backward));
@@ -236,6 +252,7 @@ public class FuelRobotContainer extends RobotContainer {
     // autoCommandChooser = AutoBuilder.buildAutoChooser("My Default Auto");
 
     return autoCommandChooser.getSelected();
+    //return null;
 
 //    return Autos.exampleAuto(exampleSubsystem);
     // The selected command will be run in autonomous

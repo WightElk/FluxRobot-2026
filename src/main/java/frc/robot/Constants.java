@@ -48,6 +48,7 @@ public final class Constants {
   public static int TimePeriodMsec = 20;  // in seconds
   public static double TimePeriod = 0.001 * TimePeriodMsec;  // in milliseconds
 
+  public static final double MaxSpeedCoef = 0.75;
   public static final double MaxMotorRPM = 6000.0;  //6380
   public static final double MaxMotorRPS = 0.5 * MaxMotorRPM / 60.0;
 
@@ -112,8 +113,8 @@ public final class Constants {
 
     public static final double MaxMotorRPS = 0.5 * MaxMotorRPM / 60.0;
 
-    public static final double Speed = 50;
-    public static final double FeederSpeed = 45;  // Backward
+    public static final double Speed = 45;
+    public static final double FeederSpeed = 40;  // Backward
 
     public static final double BackwardSpeed = -3000;//-1.5;//ROLLER_ALGAE_OUT
     public static final int ROLLER_MOTOR_CURRENT_LIMIT = 60;
@@ -125,14 +126,14 @@ public final class Constants {
     public static final int RightMotorId = 11;
     public static final int HoodMotorId = 12;
 
-    public static final double Speed = 50;
+    public static final double Speed = 2600.0 / 60.0;
     public static final double SpeedStep = 100.0 / 60.0;
 
     public static final double SpeedDown = -2500;
 
-    public static final int ShortRange = 1;
-    public static final int MidRange = 3;
-    public static final int LongRange = 5;
+    public static final int ShortRange = 0;
+    public static final int MidRange = 1;
+    public static final int LongRange = 2;
 
     public static final double HoodStep = 0.5;
     public static final double MinElevation = 0;
@@ -279,7 +280,7 @@ public final class Constants {
     public static final String CameraNameRight = "OV9281-4";
 
     public static final Translation3d robotToCamPosCenter = new Translation3d(
-      Units.inchesToMeters(-11.5), 0.0, Units.inchesToMeters(21.875));
+      Units.inchesToMeters(27.0 / 2.0 - 1.75), 0.0, Units.inchesToMeters(21.875));
     public static final Rotation3d robotToCamRotCenter = new Rotation3d(0, Units.degreesToRadians(-10), 0);
 
     public static final Translation3d robotToCamPosLeft = new Translation3d(
@@ -361,6 +362,7 @@ public final class Constants {
     public static final int CommandCount = 2;
     // Arrays of pairs: { Command name, Path name }
     public static final String[][] commands = {
+      {"Line1", "Line1"},
       {"Center", "CenterAuto"},
       {"Left", "BlueLeftAuto"}
 //      {"Right", "LeftPath"}
@@ -388,16 +390,20 @@ public final class Constants {
       "Center-Red",
       "Right-Red"
     };
+
+    public static final double blueStartX = Units.inchesToMeters(182.11 - 47.0 / 2.0 - Constants.Robot.Length / 2.0);
+    public static final double redStartX = Units.inchesToMeters(651.22 - 182.11 + 47.0 / 2.0 + Constants.Robot.Length / 2.0);
+
     public static final Translation2d[] InitPositions = {
-      new Translation2d(0, 0),
+      new Translation2d(1.0, 4.056),
       //Blue
-      new Translation2d(0, 0),
-      new Translation2d(0, 0),
-      new Translation2d(0, 0),
+      new Translation2d(blueStartX, Units.inchesToMeters(317.688 - 24.97)),
+      new Translation2d(blueStartX, Units.inchesToMeters(158.84)),
+      new Translation2d(blueStartX, Units.inchesToMeters(24.97)),
       //Red
-      new Translation2d(0, 0),
-      new Translation2d(0, 0),
-      new Translation2d(0, 0),
+      new Translation2d(redStartX, Units.inchesToMeters(317.688 - 24.97)),
+      new Translation2d(redStartX, Units.inchesToMeters(158.84)),
+      new Translation2d(redStartX, Units.inchesToMeters(24.97)),
     };
     public static final Rotation2d[] InitRotations = {
       new Rotation2d(1, 0),

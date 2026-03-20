@@ -38,12 +38,14 @@ public class Robot extends LoggedRobot {
     String comments = RobotController.getComments();
     initLogger();
 
+    releaseVersion = !comments.contains("dev-version");
+
     SmartDashboard.putString("Robot", comments);
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = comments.contains("AlgaeRobot") ? new AlgaeRobotContainer() :
-      comments.contains("CoralRobot") ? new CoralRobotContainer() : new FuelRobotContainer();
-    releaseVersion = !comments.contains("dev-version");
+      comments.contains("CoralRobot") ? new CoralRobotContainer() : new FuelRobotContainer(releaseVersion);
+
   }
 
   /**
