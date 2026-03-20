@@ -28,6 +28,7 @@ public class Robot extends LoggedRobot {
 
   private final RobotContainer m_robotContainer;
   private boolean releaseVersion = true;
+  private boolean visionEnabled = false;
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -38,13 +39,14 @@ public class Robot extends LoggedRobot {
     String comments = RobotController.getComments();
     initLogger();
 
-    releaseVersion = !comments.contains("dev-version");
+    releaseVersion = !comments.contains("dev");
+    visionEnabled = comments.contains("vision");
 
     SmartDashboard.putString("Robot", comments);
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = comments.contains("AlgaeRobot") ? new AlgaeRobotContainer() :
-      comments.contains("CoralRobot") ? new CoralRobotContainer() : new FuelRobotContainer(releaseVersion);
+      comments.contains("CoralRobot") ? new CoralRobotContainer() : new FuelRobotContainer(visionEnabled, releaseVersion);
 
   }
 

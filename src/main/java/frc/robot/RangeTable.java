@@ -17,6 +17,19 @@ public class RangeTable
             this.elevation = elevation;
         }
     };
+
+// Elevation
+// 4.25 in = 20 => k = 4.7
+    private final double hoodCoef = (9.0 - 0.0) / 2.0;  // Position/inch
+
+    private Range[] ranges =
+    {
+        new Range(Units.inchesToMeters(47.75 / 2 + Constants.Robot.Length / 2 + 8), 2200.0 / 60.0, hoodCoef * 0), // 0
+        new Range(Units.inchesToMeters(47.75 / 2 + Constants.Robot.Length / 2 + 60), 2600.0 / 60.0, hoodCoef * 7.0 / 16.0), // 7/16
+        new Range(Units.inchesToMeters(47.75 / 2 + Constants.Robot.Length / 2 + 120), 2600.0 / 60.0, hoodCoef * 1.25), // 1.25
+        new Range(Units.inchesToMeters(1.4142 * 47.75 / 2 + Constants.Robot.Length / 2 + 152), 3100.0 / 60.0, hoodCoef * 1.5) // 1.5
+    };
+
 //2 - -3.45
 //1.75 - 4.7
 //1.5 - -5.7
@@ -26,18 +39,6 @@ public class RangeTable
 //0.5
 //0.25
 //0
-// Elevation
-// 4.25 in = 20 => k = 4.7
-    private final double hoodCoef = (9.0 - 0.0) / 2.0;  // Position/inch
-
-    private Range[] ranges =
-    {
-        new Range(Units.inchesToMeters(47.75 / 2 + 8), 2200.0 / 60.0, hoodCoef * 0), // 0
-        new Range(Units.inchesToMeters(47.75 / 2 + 60), 2600.0 / 60.0, hoodCoef * 7.0 / 16.0), // 7/16
-        new Range(Units.inchesToMeters(47.75 / 2 + 120), 2600.0 / 60.0, hoodCoef * 1.25), // 1.25
-        new Range(Units.inchesToMeters(1.4142 * 47.75 / 2 + 152), 3100.0 / 60.0, hoodCoef * 1.5) // 1.5
-    };
-
     private Range[] rangesPrev =
     {
         new Range(17.5, 2350.0 / 60.0, 0), //0
@@ -69,7 +70,36 @@ public class RangeTable
         return preset >= 0 ? ranges[preset].elevation : 0;
     }
 
+    public double lerp(double a, double b, double x)
+    {
+        return a * (1.0 - x) + x * b;
+    }
+
     public Range getRange(double distance)
+    {
+        if (ranges.length == 0)
+            return null;
+
+        int i = 0;
+        while (i < ranges.length && distance <= ranges[i].distance)
+            ++i;
+
+        if (i == 0)
+        {
+            return ranges[0];
+        }
+        else if (i >= ranges.length - 1)
+        {
+            return ranges[ranges.length - 1];
+        }
+
+        double d = distance - ranges[i].distance;
+        double speed = lerp(ranges[i].speed, ranges[i+1].speed, d);
+        double elevation = lerp(ranges[i].elevation, ranges[i+1].elevation, d);
+        return new Range(distance, speed, elevation);
+    }
+
+    public Range getRangeStep(double distance)
     {
         Range range = null;
         for (int i = 0; i < ranges.length; ++i)
@@ -80,53 +110,11 @@ public class RangeTable
             break;
           }
         }
-        if (range == null)
+        if (range == null && ranges.length > 0)
         {
             range = ranges[ranges.length - 1];
         }
         
         return range;
     }
-
-    public double lerp(double a, double b, double x)
-    {
-        return a * (1 - x) + x * b;
-    }
-/*
-    public Range getRangeInterp(double distance)
-    {
-        Range range = null;
-        int i = 0;
-        if (ranges.length == 0)
-            return range;
-
-        while (i < ranges.length)
-        {
-          if (distance <= ranges[i].distance)
-          {
-            range = ranges[i];
-            break;
-          }
-            ++i;
-        }
-            if (i == ranges.length && i > 0)
-            {
-                i = ranges.length - 1;
-            }
-        if (range == null)
-        {
-            range = ranges[ranges.length - 1];
-        }
-        else
-        {
-            range.distance;
-            range.getElevationPreset
-        }
-        double d = distance - ranges[i];
-        double s = lerp(ranges[i].speed, ranges[i+1].speed, d);
-        double e = lerp(ranges[i].elevation, ranges[i+1].elevation, d);
-        Range = new Range(distance, s, e);
-        return range;
-    }
-*/        
 }

@@ -85,8 +85,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     public OptionalInt stationLocation;
     
     private com.pathplanner.lib.config.RobotConfig robotConfig;
-    private PIDConstants translationPid = new PIDConstants(5.0, 0.0, 0.0001);
-    private PIDConstants rotationPid = new PIDConstants(5.0, 0.0, 0.0001);
+    private PIDConstants translationPid = new PIDConstants(10.0, 0.0, 0.0001);
+    private PIDConstants rotationPid = new PIDConstants(7.0, 0.0, 0.0001);
 
     /* Swerve requests to apply during SysId characterization */
     private final SwerveRequest.SysIdSwerveTranslation m_translationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
@@ -183,11 +183,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             new Translation2d(config.backRight.xPos, config.backRight.yPos)
         );
 
-        initPathPlanner();
-
         if (Utils.isSimulation()) {
             startSimThread();
         }
+        configurePathPlanner();
     }
 
     /**
@@ -223,7 +222,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
-        initPathPlanner();
+        configurePathPlanner();
     }
 
     /**
@@ -267,7 +266,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
-        initPathPlanner();
+        configurePathPlanner();
     }
 
     /**
@@ -353,6 +352,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
         Pose2d pose = poseEstimator.updateWithTime(Timer.getFPGATimestamp(), rotation, getState().ModulePositions);
 
+        //log();
+    }
+
+    public void log()        
+    {
         SmartDashboard.putNumber("Position_X", currentPose.getX());
         SmartDashboard.putNumber("Position_Y", currentPose.getY());
         SmartDashboard.putNumber("Rotation_Grad", currentPose.getRotation().getDegrees());
@@ -525,7 +529,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
     }
 
-    protected boolean initPathPlanner() {
+    protected boolean configurePathPlanner() {
         // Load the RobotConfig from the GUI settings. You should probably
         // store this in your Constants file
         try
@@ -534,7 +538,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            DriverStation.reportError("Failed to load PathPlanner config and configure AutoBuilder", e.getStackTrace());
             return false;
         }
 

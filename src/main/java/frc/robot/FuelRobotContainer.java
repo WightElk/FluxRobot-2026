@@ -73,12 +73,12 @@ public class FuelRobotContainer extends RobotContainer {
 
     public boolean releaseVersion = true;
 
-  public FuelRobotContainer(boolean releaseVersion) {
-    super(RobotConfig.FuelRobot, true);
+  public FuelRobotContainer(boolean visionEnabled, boolean releaseVersion) {
+    super(RobotConfig.FuelRobot, visionEnabled);
     this.releaseVersion = releaseVersion;
 
     int connectedJoystickCount = connectedJoystickCount();
-    System.out.println("connectedJoystickCount " + connectedJoystickCount);
+//    System.out.println("connectedJoystickCount " + connectedJoystickCount);
     useTwoControllers = connectedJoystickCount == 2;
 
     intake = new VelocityMech(canBus, "Intake", IntakeConstants.MotorId);
@@ -269,7 +269,7 @@ public class FuelRobotContainer extends RobotContainer {
   
   public void storeParameters()
   {
-    System.out.println("storeParameters");
+//    System.out.println("storeParameters");
 
     intake.putParams();
     tilter.putParams();
@@ -283,7 +283,7 @@ public class FuelRobotContainer extends RobotContainer {
 
   public void fetchParameters()
   {
-    System.out.println("fetchParameters");
+//    System.out.println("fetchParameters");
 
     intake.getParams();
     tilter.getParams();

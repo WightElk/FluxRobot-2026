@@ -67,7 +67,7 @@ public class RobotContainer {
   private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
     .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
     .withDriveRequestType(DriveRequestType.OpenLoopVoltage) // Use open-loop control for drive motors
-    .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance);
+    .withForwardPerspective(ForwardPerspectiveValue.OperatorPerspective);
 
   protected final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
   private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
@@ -276,18 +276,19 @@ public class RobotContainer {
 
     // // Run SysId routines when holding back/start and X/Y.
     // // Note that each routine should be run exactly once in a single log.
-    driverController.back().and(driverController.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-    driverController.back().and(driverController.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-    driverController.start().and(driverController.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-    driverController.start().and(driverController.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+    // driverController.back().and(driverController.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+    // driverController.back().and(driverController.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+    // driverController.start().and(driverController.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
+    // driverController.start().and(driverController.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
     // // reset the field-centric heading on left bumper press
-    driverController.back().and(driverController.rightBumper()).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+    driverController.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
+//    driverController.back().and(driverController.rightBumper()).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
   
     // Vision control bindings (driver controller only)
     // Left bumper: Drive to AprilTag (vision-guided alignment)
-    if (visionEnabled)
-      driverController.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new DriveToTag(vision, drivetrain));
+    // if (visionEnabled)
+    //   driverController.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new DriveToTag(vision, drivetrain));
 
     Supplier<Pose2d> goalPoseSupplier = () -> new Pose2d(Units.feetToMeters(5), Units.feetToMeters(3), Rotation2d.fromDegrees(90));
     Supplier<Pose2d> poseProvider = drivetrain::getPose;

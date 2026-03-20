@@ -168,6 +168,7 @@ public class IndexerSubsystem extends SubsystemBase {
         //motor.setControl(velocityVoltage.withVelocity(speed * Constants.ShooterConstants.MaxMotorRPS));
 //        .withFeedForward(feedforward))
 //        motor.setControl(velocityTorque.withVelocity(speed * Constants.MaxMotorRPS));
+
         double v = motor.getVelocity().getValue().magnitude();
         System.out.println("Index: " + speed + " / " + rps + " / " + v);
 
