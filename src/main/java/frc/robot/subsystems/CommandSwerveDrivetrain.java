@@ -300,7 +300,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     //         getModule(i).apply(new ModuleRequest().withState(moduleStates[i]));
     // }
 
-    private void setChassisSpeeds(ChassisSpeeds robotSpeeds) {
+    public void setChassisSpeeds(ChassisSpeeds robotSpeeds) {
         setControl(new SwerveRequest.RobotCentric()
             .withVelocityX(robotSpeeds.vxMetersPerSecond)
             .withVelocityY(robotSpeeds.vyMetersPerSecond)

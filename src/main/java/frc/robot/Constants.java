@@ -7,6 +7,7 @@ package frc.robot;
 import java.util.HashMap;
 import java.util.List;
 
+import edu.wpi.first.math.util.Units;
 import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 
 import edu.wpi.first.math.Matrix;
@@ -139,6 +140,7 @@ public final class Constants {
     public static final double MinElevation = 0;
     public static final double MaxElevation = 20;
 
+    public static final double RangePositionTolerance = Units.inchesToMeters(6);
     public static final int SHOOT_MOTOR_CURRENT_LIMIT = 40;
     public static final double SHOOT_MOTOR_VOLTAGE_COMP = 10;
 

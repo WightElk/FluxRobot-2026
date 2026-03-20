@@ -1,15 +1,19 @@
 package frc.robot.commands;
 
 import frc.robot.Constants.IndexerConstants;
+import frc.robot.Constants.ShooterConstants;
 import frc.robot.RangeTable;
+import frc.robot.Robot;
 import frc.robot.subsystems.PositionMech;
 import frc.robot.subsystems.VelocityMech;
 import frc.robot.subsystems.VelocityMech2;
 
+import java.lang.constant.Constable;
 import java.util.function.Supplier;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 
 /** A command to take Algae into the robot. */
@@ -17,19 +21,25 @@ public class RangeShootCmd extends Command {
   private final VelocityMech2 shooter;
   private final PositionMech hood;
   private final VelocityMech feeder;
+  private final VelocityMech indexer;
   private final RangeTable rangeTable;
   private final Supplier<Pose2d> poseProvider;
-  private Translation2d hubPos = new Translation2d(182.11, 158.84);
+  private Translation2d blueHubPos = new Translation2d(Units.inchesToMeters(82.11), Units.inchesToMeters(158.84));
+  private Translation2d redHubPos = new Translation2d(Units.inchesToMeters(651.22 - 182.11), Units.inchesToMeters(158.84));
   private Pose2d currentPose;
+  private boolean running = false;
+  private boolean poseChanged = false;
+  private double positionTolerance = ShooterConstants.RangePositionTolerance;
 
   /**
    * Rolls Algae into the intake.
    *
    * @param roller The subsystem used by this command.
    */
-  public RangeShootCmd(VelocityMech2 shooter, PositionMech hood, VelocityMech feeder, RangeTable rangeTable, Supplier<Pose2d> poseProvider) {
+  public RangeShootCmd(VelocityMech2 shooter, PositionMech hood, VelocityMech feeder, VelocityMech indexer, RangeTable rangeTable, Supplier<Pose2d> poseProvider) {
     this.shooter = shooter;
     this.hood = hood;
+    this.indexer = indexer;
     this.feeder = feeder;
     this.rangeTable = rangeTable;
     this.poseProvider = poseProvider;
@@ -42,16 +52,19 @@ public class RangeShootCmd extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-//    shooter.setSpeed(ShooterConstants.Speed);
+      running = false;
+      poseChanged = false;
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
       Pose2d pose = poseProvider.get();
-      if (currentPose != pose)
+      Translation2d pos = pose.getTranslation();
+      double delta = pos.getDistance(currentPose.getTranslation());
+      if (delta >= positionTolerance)
       {
-        Translation2d pos = pose.getTranslation();
+        Translation2d hubPos = Robot.isBlueSide() ? blueHubPos : redHubPos;
         double distance = pos.getDistance(hubPos);
 
         RangeTable.Range range = rangeTable.getRange(distance);
@@ -61,43 +74,29 @@ public class RangeShootCmd extends Command {
         shooter.setSpeed(speed);
         hood.run(hoodPos);
 
-        feeder.setSpeed(IndexerConstants.FeederSpeed);
-
         currentPose = pose;
+        poseChanged = true;
       }
 
-      if (shooter.atTarget() && hood.atTarget())
+      if (shooter.atTarget() && poseChanged)
       {
-        feeder.setSpeed(IndexerConstants.FeederSpeed);
+        running = true;
+        poseChanged = false;
+        indexer.setTargetSpeed(-IndexerConstants.Speed);
+        indexer.setSpeed(-IndexerConstants.Speed);
+        feeder.setTargetSpeed(-IndexerConstants.FeederSpeed);
+        feeder.setSpeed(-IndexerConstants.FeederSpeed);
       }
-
-        // if (running && targetVelocityChanged)
-        // {
-        //     velocityRPM = direction == Constants.Backward ? -targetVelocity : targetVelocity;
-        //     motor.setControl(velocityVoltage.withVelocity(velocityRPM / 60.0));
-
-        //     double speed;
-        //     shooter.setSpeed(speed);
-        //     System.out.println("setControl-periodic");
-        // }
-
-        // double vel = 60 * getVelocity();
-        // if (vel != velocity)
-        // {
-        //     String prefix = name + "/";
-        //     SmartDashboard.putNumber(prefix + "RPM", vel);
-        //     velocity = vel;
-        // }
-        // double target = direction == Constants.Backward ? -targetVelocity : targetVelocity;
-        // atSpeed = Math.abs(vel - target) <= rpmDelta;
-        // //System.out.println("RPM: " + velocityRPM + " / " + vel);
   }
 
     // Called once the command ends or is interrupted. This ensures the roller is not running when not intented.
     @Override
     public void end(boolean interrupted)
     {
+        indexer.stop();
         feeder.stop();
+        running = false;
+        poseChanged = false;
     }
 
     // Returns true when the command should end.

@@ -78,8 +78,8 @@ public class FuelRobotContainer extends RobotContainer {
     this.releaseVersion = releaseVersion;
 
     int connectedJoystickCount = connectedJoystickCount();
+    useTwoControllers = releaseVersion ? true : (connectedJoystickCount == 2);
 //    System.out.println("connectedJoystickCount " + connectedJoystickCount);
-    useTwoControllers = connectedJoystickCount == 2;
 
     intake = new VelocityMech(canBus, "Intake", IntakeConstants.MotorId);
     tilter = new PositionMech(canBus, "Tilter", IntakeConstants.TiltMotorId);
@@ -115,7 +115,6 @@ public class FuelRobotContainer extends RobotContainer {
   protected void configureBindings() {
     super.configureBindings();
 
-    useTwoControllers = releaseVersion ? true : useTwoControllers;
     CommandXboxController controller = useTwoControllers ? operatorController : driverController;
 
     if (useTwoControllers)
@@ -153,7 +152,7 @@ public class FuelRobotContainer extends RobotContainer {
       // Left Trigger  - Aim at Hub then Run Feeder and Shoot
 //      controller.rightBumper().whileTrue(new VelocityCmd(indexer, () -> IndexerConstants.Speed, Constants.Forward));
 
-      //      controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new ShootToHubCmd(shooter, hood, feeder, drivetrain::getPose));
+      controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new ShootToHubCmd(shooter, hood, feeder, drivetrain::getPose));
 
       controller.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(Commands.parallel(
         new VelocityCmd(feeder, () -> IndexerConstants.FeederSpeed, Constants.Backward),
