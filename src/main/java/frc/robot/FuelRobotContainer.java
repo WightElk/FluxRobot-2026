@@ -138,8 +138,8 @@ public class FuelRobotContainer extends RobotContainer {
       driverController.b().onTrue(new TiltIntakeCmd(tilter, Constants.Backward));
       // Pov Left - Push out intake
       // Pov Down - Pull in intake
-      // driverController.povLeft().whileTrue(new RunCommand(() -> tilter.jogDown(IntakeConstants.TiltStep), tilter));
-      // driverController.povRight().whileTrue(new RunCommand(() -> tilter.jogUp(IntakeConstants.TiltStep), tilter));
+      driverController.povLeft().whileTrue(new RunCommand(() -> tilter.jogDown(IntakeConstants.TiltStep), tilter));
+      driverController.povRight().whileTrue(new RunCommand(() -> tilter.jogUp(IntakeConstants.TiltStep), tilter));
 
       driverController.leftBumper().whileTrue(Commands.runOnce(drivetrain::seedFieldCentric, drivetrain));
 
@@ -177,8 +177,8 @@ public class FuelRobotContainer extends RobotContainer {
       // Indexer control
       // POV Right - Indexer rollers IN
       // POV Left  - Indexer rollers OUT
-      controller.povRight().and(controller.leftBumper()).whileTrue(Commands.runOnce(() -> shooter.speedUp(ShooterConstants.SpeedStep), shooter));
-      controller.povLeft().and(controller.leftBumper()).whileTrue(Commands.runOnce(() -> shooter.speedDown(ShooterConstants.SpeedStep), shooter));
+      //controller.povRight().and(controller.leftBumper()).whileTrue(Commands.runOnce(() -> shooter.speedUp(ShooterConstants.SpeedStep), shooter));
+      //controller.povLeft().and(controller.leftBumper()).whileTrue(Commands.runOnce(() -> shooter.speedDown(ShooterConstants.SpeedStep), shooter));
 
       // Shooter Hood
       // Pov Up - Hood Up
