@@ -122,7 +122,7 @@ public class FuelRobotContainer extends RobotContainer {
       // X - Keep robot in place
       driverController.x().whileTrue(drivetrain.applyRequest(() -> brake));
 
-      driverController.y().onTrue(Commands.runOnce(drivetrain::resetGyro));
+      driverController.y().onTrue(Commands.runOnce(drivetrain::resetGyro, drivetrain));
 
       // Intake control
       // Right Trigger - Run intake rolller IN
@@ -140,7 +140,9 @@ public class FuelRobotContainer extends RobotContainer {
       driverController.povLeft().whileTrue(new RunCommand(() -> tilter.jogDown(IntakeConstants.TiltStep), tilter));
       driverController.povRight().whileTrue(new RunCommand(() -> tilter.jogUp(IntakeConstants.TiltStep), tilter));
 
-      driverController.back().onTrue(Commands.runOnce(() -> resetEncoders()));
+      driverController.leftBumper().whileTrue(Commands.runOnce(drivetrain::seedFieldCentric, drivetrain));
+
+      driverController.back().onTrue(Commands.runOnce(() -> resetEncoders(), drivetrain));
       // Fetch parameters
 //      driverController.back().and(controller.leftBumper().negate()).toggleOnTrue(Commands.runOnce(() -> fetchParameters()));
       // Update parameters
