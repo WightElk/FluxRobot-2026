@@ -406,15 +406,15 @@ public final class Constants {
       new Translation2d(redStartX, Units.inchesToMeters(24.97))
     };
     public static final Rotation2d[] InitRotations = {
-      Rotation2d.fromDegrees(0),
+      Rotation2d.kZero,
       //Blue
-      Rotation2d.fromDegrees(0),
-      Rotation2d.fromDegrees(0),
-      Rotation2d.fromDegrees(0),
+      Rotation2d.kZero,
+      Rotation2d.kZero,
+      Rotation2d.kZero,
       //Red
-      Rotation2d.fromDegrees(180),
-      Rotation2d.fromDegrees(180),
-      Rotation2d.fromDegrees(180)
+      Rotation2d.kPi,
+      Rotation2d.kPi,
+      Rotation2d.kPi
     };
   
   }

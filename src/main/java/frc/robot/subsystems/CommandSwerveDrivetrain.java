@@ -83,7 +83,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     public Alliance alliance = Alliance.Blue;
     public OptionalInt stationLocation;
-    
+
+    /// Swerve request to apply during robot-centric path following
+    private final SwerveRequest.ApplyRobotSpeeds pathApplyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds();
+
     private com.pathplanner.lib.config.RobotConfig robotConfig;
     private PIDConstants translationPid = new PIDConstants(10.0, 0.0, 0.0001);
     private PIDConstants rotationPid = new PIDConstants(7.0, 0.0, 0.0001);
@@ -279,22 +282,29 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         return run(() -> this.setControl(requestSupplier.get()));
     }
 
-    public void setChassisSpeeds(ChassisSpeeds speeds) {
-        SwerveModuleState[] moduleStates = kinematics.toSwerveModuleStates(speeds);
-        // SwerveModuleState frontLeft = moduleStates[0];
-        // SwerveModuleState frontRight = moduleStates[1];
-        // SwerveModuleState backLeft = moduleStates[2];
-        // SwerveModuleState backRight = moduleStates[3];
+    // public void setChassisSpeeds(ChassisSpeeds speeds) {
+    //     SwerveModuleState[] moduleStates = kinematics.toSwerveModuleStates(speeds);
+    //     // SwerveModuleState frontLeft = moduleStates[0];
+    //     // SwerveModuleState frontRight = moduleStates[1];
+    //     // SwerveModuleState backLeft = moduleStates[2];
+    //     // SwerveModuleState backRight = moduleStates[3];
 
-        // ModuleRequest frontLeftRequest = new ModuleRequest();
-        // frontLeftRequest.withState(moduleStates[0]);
-        // ModuleRequest frontLeftRequest = ModuleRequest.create()
-        //     .withSteerAngle(frontLeft.angle)
-        //     .withDriveVelocity(frontLeft.speed);
+    //     // ModuleRequest frontLeftRequest = new ModuleRequest();
+    //     // frontLeftRequest.withState(moduleStates[0]);
+    //     // ModuleRequest frontLeftRequest = ModuleRequest.create()
+    //     //     .withSteerAngle(frontLeft.angle)
+    //     //     .withDriveVelocity(frontLeft.speed);
 
-        //TODO Compare with setControl(SwerveRequest request)
-        for (int i = 0; i < 4; ++i)
-            getModule(i).apply(new ModuleRequest().withState(moduleStates[i]));
+    //     //TODO Compare with setControl(SwerveRequest request)
+    //     for (int i = 0; i < 4; ++i)
+    //         getModule(i).apply(new ModuleRequest().withState(moduleStates[i]));
+    // }
+
+    private void setChassisSpeeds(ChassisSpeeds robotSpeeds) {
+        setControl(new SwerveRequest.RobotCentric()
+            .withVelocityX(robotSpeeds.vxMetersPerSecond)
+            .withVelocityY(robotSpeeds.vyMetersPerSecond)
+            .withRotationalRate(robotSpeeds.omegaRadiansPerSecond));
     }
 
     /**
@@ -335,13 +345,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             DriverStation.getAlliance().ifPresent(color -> {
                 alliance = color;
                 stationLocation = DriverStation.getLocation();
-                m_hasAppliedOperatorPerspective = true;
                 //TODO
-                // setOperatorPerspectiveForward(
-                //     color == Alliance.Red
-                //         ? kRedAlliancePerspectiveRotation
-                //         : kBlueAlliancePerspectiveRotation
-                // );
+                setOperatorPerspectiveForward(
+                    color == Alliance.Red ? kRedAlliancePerspectiveRotation : kBlueAlliancePerspectiveRotation
+                );
+                m_hasAppliedOperatorPerspective = true;
             });
         }
 
@@ -453,13 +461,15 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     {
         initPose = pose;
         odometry.resetPose(initPose);
-        poseEstimator.resetPose(initPose);
+//        poseEstimator.resetPose(initPose);
+        resetPose(pose, false);
     }
 
     public void resetPose(Pose2d pose, boolean resetSimPose) {
         super.resetPose(pose);
 
         poseEstimator.resetPosition(getGyroYaw(), getState().ModulePositions, pose);
+//        seedFieldCentric();
     }
 
     /** Get the estimated pose of the swerve drive on the field. */
@@ -479,7 +489,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     /** Get the chassis speeds of the robot (vx, vy, omega) from the swerve module states. */
     public ChassisSpeeds getChassisSpeeds() {
-        return kinematics.toChassisSpeeds(getState().ModuleStates);
+        return getState().Speeds;
+//        return kinematics.toChassisSpeeds(getState().ModuleStates);
     }
 
     public Pose2d getPosition() {
@@ -551,7 +562,12 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             this::getChassisSpeeds,
              // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
             //TODO :drive()
-            (speeds, feedforwards) -> setChassisSpeeds(speeds),
+//            (speeds, feedforwards) -> setChassisSpeeds(speeds),
+            (speeds, feedforwards) -> setControl(
+                pathApplyRobotSpeeds.withSpeeds(ChassisSpeeds.discretize(speeds, 0.020))
+                    .withWheelForceFeedforwardsX(feedforwards.robotRelativeForcesXNewtons())
+                    .withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons())
+            ),
             new PPHolonomicDriveController(translationPid, rotationPid),
             robotConfig,
             // Boolean supplier that controls when the path will be mirrored for the red alliance

@@ -134,16 +134,16 @@ public class FuelRobotContainer extends RobotContainer {
       // Intake Tilt control
       // A - Deploy intake
       // B - Retract intake
-      driverController.a().onTrue(new TiltIntakeCmd(tilter, Constants.Forward));
-      driverController.b().onTrue(new TiltIntakeCmd(tilter, Constants.Backward));
+      driverController.b().onTrue(new TiltIntakeCmd(tilter, Constants.Forward));
+      driverController.a().onTrue(new TiltIntakeCmd(tilter, Constants.Backward));
       // Pov Left - Push out intake
       // Pov Down - Pull in intake
       driverController.povLeft().whileTrue(new RunCommand(() -> tilter.jogDown(IntakeConstants.TiltStep), tilter));
       driverController.povRight().whileTrue(new RunCommand(() -> tilter.jogUp(IntakeConstants.TiltStep), tilter));
 
-      driverController.back().and(controller.leftBumper()).onTrue(Commands.runOnce(() -> resetEncoders()));
+      driverController.back().onTrue(Commands.runOnce(() -> resetEncoders()));
       // Fetch parameters
-      driverController.back().and(controller.leftBumper().negate()).toggleOnTrue(Commands.runOnce(() -> fetchParameters()));
+//      driverController.back().and(controller.leftBumper().negate()).toggleOnTrue(Commands.runOnce(() -> fetchParameters()));
       // Update parameters
       //controller.back().and(controller.x()).toggleOnTrue(Commands.runOnce(() -> storeParameters()));
 
@@ -314,6 +314,7 @@ public class FuelRobotContainer extends RobotContainer {
       else
         initPoseChooser.addOption(Constants.Paths.InitNames[i], pose);
     }
+    SmartDashboard.putData("Initial Position", initPoseChooser);
   }
 
   protected void initPaths()
@@ -330,17 +331,14 @@ public class FuelRobotContainer extends RobotContainer {
   {
     autoCommandChooser = AutoBuilder.buildAutoChooser();
 
-    if (Constants.AutoConstants.commands.length > 0)
-    {
-      Command cmd = new PathPlannerAuto(Constants.AutoConstants.commands[0][1]);
-      autoCommandChooser.setDefaultOption(Constants.AutoConstants.commands[0][0], cmd);
-    }
+    autoCommandChooser.setDefaultOption("No Auto", Commands.runOnce(() -> {}));
 
-    for (int i = 1; i < Constants.AutoConstants.commands.length; ++i)
+    for (int i = 0; i < Constants.AutoConstants.commands.length; ++i)
     {
       Command cmd = new PathPlannerAuto(Constants.AutoConstants.commands[i][1]);
       autoCommandChooser.addOption(Constants.AutoConstants.commands[i][0], cmd);
     }
+    SmartDashboard.putData("Auto Mode", autoCommandChooser);
   }
 
   protected void createPath() {
