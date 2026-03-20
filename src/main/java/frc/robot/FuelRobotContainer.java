@@ -149,15 +149,15 @@ public class FuelRobotContainer extends RobotContainer {
 
       // Shooter and Feeder control
       // Right Trigger - Run Feeder and Shoot
-//        controller.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(new VelocityCmd(feeder, () -> IndexerConstants.FeederSpeed, Constants.Backward));
+      controller.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(new VelocityCmd(feeder, () -> IndexerConstants.FeederSpeed, Constants.Backward));
       // Left Trigger  - Aim at Hub then Run Feeder and Shoot
-//      controller.rightBumper().whileTrue(new VelocityCmd(indexer, () -> IndexerConstants.Speed, Constants.Forward));
+      controller.rightBumper().whileTrue(new VelocityCmd(indexer, () -> IndexerConstants.Speed, Constants.Forward));
 
       //      controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new ShootToHubCmd(shooter, hood, feeder, drivetrain::getPose));
 
-      controller.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(Commands.parallel(
-        new VelocityCmd(feeder, () -> IndexerConstants.FeederSpeed, Constants.Backward),
-        new VelocityCmd(indexer, () -> IndexerConstants.Speed, Constants.Forward)));
+      // controller.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(Commands.parallel(
+      //   new VelocityCmd(feeder, () -> IndexerConstants.FeederSpeed, Constants.Backward),
+      //   new VelocityCmd(indexer, () -> IndexerConstants.Speed, Constants.Forward)));
 
       // Shooter control
       // A - Shooter ON
