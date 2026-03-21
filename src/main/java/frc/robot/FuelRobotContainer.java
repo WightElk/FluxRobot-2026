@@ -8,6 +8,7 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.GoalEndState;
@@ -133,8 +134,19 @@ public class FuelRobotContainer extends RobotContainer {
       // Intake Tilt control
       // A - Deploy intake
       // B - Retract intake
-      driverController.b().onTrue(new TiltIntakeCmd(tilter, Constants.Forward));
-      driverController.a().onTrue(new TiltIntakeCmd(tilter, Constants.Backward));
+      Command jogIntakeOut = Commands.sequence(
+        new RunCommand(() -> tilter.jogDown(IntakeConstants.TiltStep), tilter),
+      Commands.waitSeconds(0.2));
+
+    Command intakeOut = Commands.sequence(jogIntakeOut.asProxy(),
+      jogIntakeOut.asProxy(),
+      jogIntakeOut.asProxy(),
+      jogIntakeOut.asProxy());
+
+      driverController.a().onTrue(intakeOut);
+      // driverController.b().onTrue(new TiltIntakeCmd(tilter, Constants.Forward));
+      // driverController.a().onTrue(new TiltIntakeCmd(tilter, Constants.Backward));
+
       // Pov Left - Push out intake
       // Pov Down - Pull in intake
       driverController.povLeft().whileTrue(new RunCommand(() -> tilter.jogDown(IntakeConstants.TiltStep), tilter));
@@ -157,7 +169,7 @@ public class FuelRobotContainer extends RobotContainer {
       controller.rightBumper().whileTrue(new VelocityCmd(indexer, () -> IndexerConstants.Speed, Constants.Forward));
 
       controller.leftBumper().whileTrue(new RangeShootCmd(shooter, hood, feeder, indexer, rangeTable, drivetrain::getPose));
-      controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new ShootToHubCmd(shooter, hood, feeder, indexer, drivetrain, drivetrain::getPose));
+//      controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new ShootToHubCmd(shooter, hood, feeder, indexer, drivetrain, drivetrain::getPose));
 
       // controller.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(Commands.parallel(
       //   new VelocityCmd(feeder, () -> IndexerConstants.FeederSpeed, Constants.Backward),
@@ -281,8 +293,6 @@ public class FuelRobotContainer extends RobotContainer {
     feeder.putParams();
     shooter.putParams();
     hood.putParams();
-
-    SmartDashboard.putData(autoCommandChooser);
   }
 
   public void fetchParameters()
@@ -333,15 +343,52 @@ public class FuelRobotContainer extends RobotContainer {
 
   protected void initAutoCommands()
   {
+        driverController.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(new VelocityCmd(intake, () -> IntakeConstants.InSpeed, Constants.Forward));
+      driverController.rightBumper().whileTrue(new VelocityCmd(intake, () -> IntakeConstants.OutSpeed, Constants.Backward));
+      // controller.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue();
+
+    Command jogIntakeOut = Commands.sequence(
+      new RunCommand(() -> tilter.jogDown(IntakeConstants.TiltStep), tilter),
+      Commands.waitSeconds(0.2));
+
+    Command intakeOut = Commands.sequence(jogIntakeOut.asProxy(),
+      jogIntakeOut.asProxy(),
+      jogIntakeOut.asProxy(),
+      jogIntakeOut.asProxy());
+
+    NamedCommands.registerCommand("IntakeOutCmd", intakeOut);
+    NamedCommands.registerCommand("StartIntakeCmd", Commands.parallel(
+      new VelocityCmd(intake, () -> IntakeConstants.InSpeed, Constants.Forward),
+      new VelocityCmd(indexer, () -> IndexerConstants.Speed, Constants.Forward)
+    ));
+    NamedCommands.registerCommand("StopIntakeCmd", Commands.parallel(
+      Commands.runOnce(() -> intake.stop()),
+      Commands.runOnce(() -> indexer.stop())
+    ));
+
+    NamedCommands.registerCommand("StartShooterCmd", new ShootCommand(shooter, () -> ShooterConstants.Speed, Constants.Forward));
+    NamedCommands.registerCommand("AutoShootCmd", new RangeShootCmd(shooter, hood, feeder, indexer, rangeTable, drivetrain::getPose));
+
     autoCommandChooser = AutoBuilder.buildAutoChooser();
 
-    autoCommandChooser.setDefaultOption("No Auto", Commands.runOnce(() -> {}));
-
-    for (int i = 0; i < Constants.AutoConstants.commands.length; ++i)
+    autoCommandChooser.setDefaultOption("No Auto", Commands.none());
+    try
     {
-      Command cmd = new PathPlannerAuto(Constants.AutoConstants.commands[i][1]);
-      autoCommandChooser.addOption(Constants.AutoConstants.commands[i][0], cmd);
+      String leftAutoName = Constants.AutoConstants.commands[0][1];
+      autoCommandChooser.addOption(Constants.AutoConstants.commands[0][0], new PathPlannerAuto(leftAutoName));
+      autoCommandChooser.addOption(Constants.AutoConstants.commands[1][0], new PathPlannerAuto(leftAutoName, true));
     }
+    catch(Exception e)
+    {
+        DriverStation.reportError("Failed to load PathPlanner Auto commands", e.getStackTrace());
+    }
+
+    // for (int i = 0; i < Constants.AutoConstants.commands.length; ++i)
+    // {
+    //   Command cmd = new PathPlannerAuto(Constants.AutoConstants.commands[i][1]);
+    //   autoCommandChooser.addOption(Constants.AutoConstants.commands[i][0], cmd);
+    // }
+
     SmartDashboard.putData("Auto Mode", autoCommandChooser);
   }
 

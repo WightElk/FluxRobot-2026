@@ -7,19 +7,37 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Left1"
+            "pathName": "LeftFwd1"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "IntakeCommand"
+            "name": "StartShooterCmd"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "StopIntakeCmd"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "LeftBck1"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "AutoShootCmd"
           }
         }
       ]
     }
   },
-  "resetOdom": true,
+  "resetOdom": false,
   "folder": null,
   "choreoAuto": false
 }

@@ -361,13 +361,12 @@ public final class Constants {
         new TrapezoidProfile.Constraints(
             kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
 
-    public static final int CommandCount = 2;
     // Arrays of pairs: { Command name, Path name }
     public static final String[][] commands = {
-      {"Line1", "Line1"},
-      {"Center", "CenterAuto"},
-      {"Left", "BlueLeftAuto"}
-//      {"Right", "LeftPath"}
+      {"Left", "BlueLeftAuto"},
+      {"Right", "BlueLeftAuto"},
+      {"Red Left", "BlueLeftAuto"},
+      {"Red Right", "BlueLeftAuto"}
     };
   }
 
@@ -384,31 +383,34 @@ public final class Constants {
     };
 
     public static final String[] InitNames = {
-      "Test",
-      "Left-Blue",
-      "Center-Blue",
-      "Right-Blue",
-      "Left-Red",
-      "Center-Red",
-      "Right-Red"
+      //"Test",
+      "Blue Left",
+      "Blue Center",
+      "Blue Right",
+      "Red Left",
+      "Red Center",
+      "Red Right"
     };
 
+    //141.61
     public static final double blueStartX = Units.inchesToMeters(182.11 - 47.0 / 2.0 - Constants.Robot.Length / 2.0);
+    //509.61
     public static final double redStartX = Units.inchesToMeters(651.22 - 182.11 + 47.0 / 2.0 + Constants.Robot.Length / 2.0);
 
     public static final Translation2d[] InitPositions = {
-      new Translation2d(1.0, 4.056),
+      //new Translation2d(1.0, 4.056),
       //Blue
+      //292.718
       new Translation2d(blueStartX, Units.inchesToMeters(317.688 - 24.97)),
       new Translation2d(blueStartX, Units.inchesToMeters(158.84)),
       new Translation2d(blueStartX, Units.inchesToMeters(24.97)),
       //Red
-      new Translation2d(redStartX, Units.inchesToMeters(317.688 - 24.97)),
+      new Translation2d(redStartX, Units.inchesToMeters(24.97)),
       new Translation2d(redStartX, Units.inchesToMeters(158.84)),
-      new Translation2d(redStartX, Units.inchesToMeters(24.97))
+      new Translation2d(redStartX, Units.inchesToMeters(317.688 - 24.97))
     };
     public static final Rotation2d[] InitRotations = {
-      Rotation2d.kZero,
+      //Rotation2d.kZero,
       //Blue
       Rotation2d.kZero,
       Rotation2d.kZero,
