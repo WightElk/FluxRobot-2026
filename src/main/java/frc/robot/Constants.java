@@ -7,6 +7,7 @@ package frc.robot;
 import java.util.HashMap;
 import java.util.List;
 
+import edu.wpi.first.math.util.Units;
 import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 
 import edu.wpi.first.math.Matrix;
@@ -139,6 +140,7 @@ public final class Constants {
     public static final double MinElevation = 0;
     public static final double MaxElevation = 20;
 
+    public static final double RangePositionTolerance = Units.inchesToMeters(6);
     public static final int SHOOT_MOTOR_CURRENT_LIMIT = 40;
     public static final double SHOOT_MOTOR_VOLTAGE_COMP = 10;
 
@@ -280,16 +282,16 @@ public final class Constants {
     public static final String CameraNameRight = "OV9281-4";
 
     public static final Translation3d robotToCamPosCenter = new Translation3d(
-      Units.inchesToMeters(27.0 / 2.0 - 1.75), 0.0, Units.inchesToMeters(21.875));
+      Units.inchesToMeters(- 27.0 / 2.0 + 1.75), 0.0, Units.inchesToMeters(21.875));
     public static final Rotation3d robotToCamRotCenter = new Rotation3d(0, Units.degreesToRadians(-10), 0);
 
     public static final Translation3d robotToCamPosLeft = new Translation3d(
       Units.inchesToMeters(-1.875), Units.inchesToMeters(16.375), Units.inchesToMeters(20.875));
-    public static final Rotation3d robotToCamRotLeft = new Rotation3d(0, 0, Units.degreesToRadians(30));
+    public static final Rotation3d robotToCamRotLeft = new Rotation3d(0, 0, Units.degreesToRadians(15));
 
     public static final Translation3d robotToCamPosRight = new Translation3d(
       Units.inchesToMeters(-1.875), Units.inchesToMeters(-16.375), Units.inchesToMeters(20.875));
-    public static final Rotation3d robotToCamRotRight = new Rotation3d(0, 0, Units.degreesToRadians(-30));
+    public static final Rotation3d robotToCamRotRight = new Rotation3d(0, 0, Units.degreesToRadians(-15));
 
     // The standard deviations of our vision estimated poses, which affect correction rate
     // (Fake values. Experiment and determine estimation noise on an actual robot.)
@@ -403,18 +405,18 @@ public final class Constants {
       //Red
       new Translation2d(redStartX, Units.inchesToMeters(317.688 - 24.97)),
       new Translation2d(redStartX, Units.inchesToMeters(158.84)),
-      new Translation2d(redStartX, Units.inchesToMeters(24.97)),
+      new Translation2d(redStartX, Units.inchesToMeters(24.97))
     };
     public static final Rotation2d[] InitRotations = {
-      new Rotation2d(1, 0),
+      Rotation2d.kZero,
       //Blue
-      new Rotation2d(1, 0),
-      new Rotation2d(1, 0),
-      new Rotation2d(1, 0),
+      Rotation2d.kZero,
+      Rotation2d.kZero,
+      Rotation2d.kZero,
       //Red
-      new Rotation2d(-1, 0),
-      new Rotation2d(-1, 0),
-      new Rotation2d(-1, 0),
+      Rotation2d.kPi,
+      Rotation2d.kPi,
+      Rotation2d.kPi
     };
   
   }

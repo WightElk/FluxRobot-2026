@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import java.util.OptionalInt;
+
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -11,6 +13,8 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;  
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -28,6 +32,9 @@ public class Robot extends LoggedRobot {
 
   private final RobotContainer m_robotContainer;
   private boolean releaseVersion = true;
+  private boolean visionEnabled = false;
+  public static Alliance alliance = Alliance.Blue;
+  public OptionalInt stationLocation;
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -38,16 +45,21 @@ public class Robot extends LoggedRobot {
     String comments = RobotController.getComments();
     initLogger();
 
-    releaseVersion = !comments.contains("dev-version");
+    releaseVersion = !comments.contains("dev");
+    visionEnabled = comments.contains("vision");
 
     SmartDashboard.putString("Robot", comments);
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = comments.contains("AlgaeRobot") ? new AlgaeRobotContainer() :
-      comments.contains("CoralRobot") ? new CoralRobotContainer() : new FuelRobotContainer(releaseVersion);
+      comments.contains("CoralRobot") ? new CoralRobotContainer() : new FuelRobotContainer(visionEnabled, releaseVersion);
 
   }
 
+  public static boolean isBlueSide()
+  {
+    return alliance == Alliance.Blue;
+  }
   /**
    * This function is called every 20 ms, no matter the mode. Use this for items like diagnostics
    * that you want ran during disabled, autonomous, teleoperated and test.
@@ -57,6 +69,11 @@ public class Robot extends LoggedRobot {
    */
   @Override
   public void robotPeriodic() {
+    DriverStation.getAlliance().ifPresent(color -> {
+        alliance = color;
+        stationLocation = DriverStation.getLocation();
+    });
+
     // Runs the Scheduler.  This is responsible for polling buttons, adding newly-scheduled
     // commands, running already-scheduled commands, removing finished or interrupted commands,
     // and running subsystem periodic() methods.  This must be called from the robot's periodic

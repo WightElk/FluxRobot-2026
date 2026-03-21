@@ -5,6 +5,7 @@ import java.util.function.Supplier;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.PositionMech;
 import frc.robot.subsystems.VelocityMech;
 import frc.robot.subsystems.VelocityMech2;
@@ -14,20 +15,24 @@ public class ShootToHubCmd extends Command
     private final VelocityMech2 shooter;
     private final PositionMech hood;
     private final VelocityMech feeder;
+    private final VelocityMech indexer;
+    private final CommandSwerveDrivetrain drivetrain;
     private final Supplier<Pose2d> poseProvider;
 
     private Pose2d currentPose;
 
-    public ShootToHubCmd(VelocityMech2 shooter, PositionMech hood, VelocityMech feeder, Supplier<Pose2d> poseProvider)
+    public ShootToHubCmd(VelocityMech2 shooter, PositionMech hood, VelocityMech feeder, VelocityMech indexer, CommandSwerveDrivetrain drivetrain, Supplier<Pose2d> poseProvider)
     {
         this.shooter = shooter;
         this.hood = hood;
         this.feeder = feeder;
+        this.indexer = indexer;
+        this.drivetrain = drivetrain;
         this.poseProvider = poseProvider;
         currentPose = poseProvider.get();
         //shooter.setTargetSpeed(speed);
         // Use addRequirements() here to declare subsystem dependencies.
-        addRequirements(shooter, hood, feeder);
+        addRequirements(shooter, hood, feeder, indexer, drivetrain);
     }
 
     @Override

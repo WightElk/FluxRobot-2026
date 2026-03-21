@@ -73,13 +73,13 @@ public class FuelRobotContainer extends RobotContainer {
 
     public boolean releaseVersion = true;
 
-  public FuelRobotContainer(boolean releaseVersion) {
-    super(RobotConfig.FuelRobot, true);
+  public FuelRobotContainer(boolean visionEnabled, boolean releaseVersion) {
+    super(RobotConfig.FuelRobot, visionEnabled);
     this.releaseVersion = releaseVersion;
 
     int connectedJoystickCount = connectedJoystickCount();
-    System.out.println("connectedJoystickCount " + connectedJoystickCount);
-    useTwoControllers = connectedJoystickCount == 2;
+    useTwoControllers = releaseVersion ? true : (connectedJoystickCount == 2);
+//    System.out.println("connectedJoystickCount " + connectedJoystickCount);
 
     intake = new VelocityMech(canBus, "Intake", IntakeConstants.MotorId);
     tilter = new PositionMech(canBus, "Tilter", IntakeConstants.TiltMotorId);
@@ -115,7 +115,6 @@ public class FuelRobotContainer extends RobotContainer {
   protected void configureBindings() {
     super.configureBindings();
 
-    useTwoControllers = releaseVersion ? true : useTwoControllers;
     CommandXboxController controller = useTwoControllers ? operatorController : driverController;
 
     if (useTwoControllers)
@@ -134,8 +133,8 @@ public class FuelRobotContainer extends RobotContainer {
       // Intake Tilt control
       // A - Deploy intake
       // B - Retract intake
-      driverController.a().onTrue(new TiltIntakeCmd(tilter, Constants.Forward));
-      driverController.b().onTrue(new TiltIntakeCmd(tilter, Constants.Backward));
+      driverController.b().onTrue(new TiltIntakeCmd(tilter, Constants.Forward));
+      driverController.a().onTrue(new TiltIntakeCmd(tilter, Constants.Backward));
       // Pov Left - Push out intake
       // Pov Down - Pull in intake
       driverController.povLeft().whileTrue(new RunCommand(() -> tilter.jogDown(IntakeConstants.TiltStep), tilter));
@@ -157,7 +156,8 @@ public class FuelRobotContainer extends RobotContainer {
       // Left Trigger  - Aim at Hub then Run Feeder and Shoot
       controller.rightBumper().whileTrue(new VelocityCmd(indexer, () -> IndexerConstants.Speed, Constants.Forward));
 
-      //      controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new ShootToHubCmd(shooter, hood, feeder, drivetrain::getPose));
+      controller.leftBumper().whileTrue(new RangeShootCmd(shooter, hood, feeder, indexer, rangeTable, drivetrain::getPose));
+      controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new ShootToHubCmd(shooter, hood, feeder, indexer, drivetrain, drivetrain::getPose));
 
       // controller.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(Commands.parallel(
       //   new VelocityCmd(feeder, () -> IndexerConstants.FeederSpeed, Constants.Backward),
@@ -273,7 +273,7 @@ public class FuelRobotContainer extends RobotContainer {
   
   public void storeParameters()
   {
-    System.out.println("storeParameters");
+//    System.out.println("storeParameters");
 
     intake.putParams();
     tilter.putParams();
@@ -287,7 +287,7 @@ public class FuelRobotContainer extends RobotContainer {
 
   public void fetchParameters()
   {
-    System.out.println("fetchParameters");
+//    System.out.println("fetchParameters");
 
     intake.getParams();
     tilter.getParams();
@@ -318,6 +318,7 @@ public class FuelRobotContainer extends RobotContainer {
       else
         initPoseChooser.addOption(Constants.Paths.InitNames[i], pose);
     }
+    SmartDashboard.putData("Initial Position", initPoseChooser);
   }
 
   protected void initPaths()
@@ -334,17 +335,14 @@ public class FuelRobotContainer extends RobotContainer {
   {
     autoCommandChooser = AutoBuilder.buildAutoChooser();
 
-    if (Constants.AutoConstants.commands.length > 0)
-    {
-      Command cmd = new PathPlannerAuto(Constants.AutoConstants.commands[0][1]);
-      autoCommandChooser.setDefaultOption(Constants.AutoConstants.commands[0][0], cmd);
-    }
+    autoCommandChooser.setDefaultOption("No Auto", Commands.runOnce(() -> {}));
 
-    for (int i = 1; i < Constants.AutoConstants.commands.length; ++i)
+    for (int i = 0; i < Constants.AutoConstants.commands.length; ++i)
     {
       Command cmd = new PathPlannerAuto(Constants.AutoConstants.commands[i][1]);
       autoCommandChooser.addOption(Constants.AutoConstants.commands[i][0], cmd);
     }
+    SmartDashboard.putData("Auto Mode", autoCommandChooser);
   }
 
   protected void createPath() {

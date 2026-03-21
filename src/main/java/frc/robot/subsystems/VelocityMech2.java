@@ -216,12 +216,12 @@ public class VelocityMech2 extends SubsystemBase {
         {
             velocityRPM = setRpm;
             motor1.setControl(velocityVoltage.withVelocity(velocityRPM / 60.0));
-            System.out.println("setControl");
+//            System.out.println("setControl");
         }
 //        .withFeedForward(feedforward))
         running = true;
-        double v = motor1.getVelocity().getValue().magnitude();
-        System.out.println("Run: " + v + " / " + velocityRPM);
+        // double v = motor1.getVelocity().getValue().magnitude();
+        // System.out.println("Run: " + v + " / " + velocityRPM);
     }
 
     public void setSpeed(double speed) {
@@ -261,7 +261,7 @@ public class VelocityMech2 extends SubsystemBase {
     }
     
     public void stop() {
-        System.out.println("SetSpeed: STOP");
+//        System.out.println("SetSpeed: STOP");
         motor1.setControl(brake);
         motor2.setControl(brake);
         reset();
@@ -367,7 +367,7 @@ public class VelocityMech2 extends SubsystemBase {
         SmartDashboard.putNumber(prefix + "Rotor V", v);
         SmartDashboard.putNumber(prefix + "Rotor P", p);
 
-        System.out.println("putParams: " + name);
+//        System.out.println("putParams: " + name);
     }
 
     public void getParams() {
@@ -393,6 +393,6 @@ public class VelocityMech2 extends SubsystemBase {
         }
 
         pidCtrl.pid(kP, kD, kI);
-        System.out.println("getParams: " + name);
+//        System.out.println("getParams: " + name);
     }
 }
