@@ -139,7 +139,7 @@ public class VelocityMech extends SubsystemBase {
         {
             velocityRPM = direction == Constants.Backward ? -targetVelocity : targetVelocity;
             motor.setControl(velocityVoltage.withVelocity(velocityRPM));
-            System.out.println("setControl-periodic " + velocityRPM);
+            //System.out.println("setControl-periodic " + velocityRPM);
         }
 
         double vel = 60 * getVelocity();
@@ -156,7 +156,7 @@ public class VelocityMech extends SubsystemBase {
     }
 
     public void init(double rpm) {
-        System.out.println(name + " Initializing");
+        //System.out.println(name + " Initializing");
         getParams();
 
         velocityRPM = rpm;
@@ -178,7 +178,7 @@ public class VelocityMech extends SubsystemBase {
 
     public void reset()
     {
-        System.out.println(name + " Reset");
+        //System.out.println(name + " Reset");
 
         execCounter = 0;
         time = 0;
@@ -203,12 +203,12 @@ public class VelocityMech extends SubsystemBase {
         {
             velocityRPM = setRpm;
             motor.setControl(velocityVoltage.withVelocity(velocityRPM / 60.0));
-            System.out.println("setControl");
+            //System.out.println("setControl");
         }
 //        .withFeedForward(feedforward))
         running = true;
         double v = motor.getVelocity().getValue().magnitude();
-        System.out.println("Run: " + v + " / " + velocityRPM);
+        //System.out.println("Run: " + v + " / " + velocityRPM);
     }
 
     public void setSpeed(double speed) {
@@ -222,7 +222,7 @@ public class VelocityMech extends SubsystemBase {
 //        .withFeedForward(feedforward))
 //        motor.setControl(velocityTorque.withVelocity(speed * Constants.MaxMotorRPS));
         double v = motor.getVelocity().getValue().magnitude();
-        System.out.println("SetSpeed: " + speed + " / " + v);
+        //System.out.println("SetSpeed: " + speed + " / " + v);
     }
 
     public void stop() {
@@ -301,7 +301,7 @@ public class VelocityMech extends SubsystemBase {
         SmartDashboard.putNumber(prefix + "Rotor V", v);
         SmartDashboard.putNumber(prefix + "Rotor P", p);
 
-        System.out.println("putParams: " + name);
+        //System.out.println("putParams: " + name);
     }
 
     public void getParams() {
@@ -327,6 +327,6 @@ public class VelocityMech extends SubsystemBase {
         }
 
         pidCtrl.pid(kP, kD, kI);
-        System.out.println("getParams: " + name);
+        //System.out.println("getParams: " + name);
     }
 }

@@ -64,7 +64,7 @@ public class FuelRobotContainer extends RobotContainer {
   private final CommandXboxController operatorController =
     new CommandXboxController(OperatorConstants.OperatorControllerPort);
 
-    public final DriveForwardAuto autoDriveForward = new DriveForwardAuto(drivetrain);
+    public final DriveForwardAuto autoDriveForward;
     
     private SendableChooser<Command> autoCommandChooser;
     //@AutoLogOutput(key = "PathChooser")
@@ -104,6 +104,8 @@ public class FuelRobotContainer extends RobotContainer {
     resetEncoders();
     drivetrain.setInitPose(initPoseChooser.getSelected());
     
+    autoDriveForward = new DriveForwardAuto(drivetrain);
+
     storeParameters();
     }
 
@@ -134,16 +136,34 @@ public class FuelRobotContainer extends RobotContainer {
       // Intake Tilt control
       // A - Deploy intake
       // B - Retract intake
-      driverController.a().onTrue(new TiltIntakeCmd(tilter, Constants.Forward));
-      driverController.b().onTrue(new TiltIntakeCmd(tilter, Constants.Backward));
+      // driverController.a().onTrue(new TiltIntakeCmd(tilter, Constants.Forward));
+      // driverController.b().onTrue(new TiltIntakeCmd(tilter, Constants.Backward));
+
       // Pov Left - Push out intake
       // Pov Down - Pull in intake
       driverController.povLeft().whileTrue(new RunCommand(() -> tilter.jogDown(IntakeConstants.TiltStep), tilter));
       driverController.povRight().whileTrue(new RunCommand(() -> tilter.jogUp(IntakeConstants.TiltStep), tilter));
 
+      Command jogIntakeOut = Commands.deadline(Commands.waitSeconds(0.8),
+        new RunCommand(() -> tilter.jogDown(IntakeConstants.TiltStep), tilter));
+
+    Command intakeOut = Commands.sequence(jogIntakeOut.asProxy(),
+    Commands.runOnce(() -> tilter.stop(), tilter));
+
+    driverController.b().onTrue(intakeOut);
+
+    Command jogIntakeIn = Commands.deadline(Commands.waitSeconds(1.0),
+      new RunCommand(() -> tilter.jogUp(IntakeConstants.TiltStep), tilter));
+
+    Command intakeIn = Commands.sequence(jogIntakeIn.asProxy(),
+    Commands.runOnce(() -> tilter.stop(), tilter));
+
+    driverController.a().onTrue(intakeIn);
+//      driverController.a().onTrue(new TiltIntakeCmd(tilter, Constants.Backward));
+
       driverController.leftBumper().whileTrue(Commands.runOnce(drivetrain::seedFieldCentric, drivetrain));
 
-      driverController.back().onTrue(Commands.runOnce(() -> resetEncoders(), drivetrain));
+      //driverController.back().onTrue(Commands.runOnce(() -> resetEncoders(), drivetrain));
 
       // driverController.back().and(controller.leftBumper()).onTrue(Commands.runOnce(() -> resetEncoders()));
       // // Fetch parameters
@@ -255,8 +275,9 @@ public class FuelRobotContainer extends RobotContainer {
     // Another option that allows you to specify the default auto by its name
     // autoCommandChooser = AutoBuilder.buildAutoChooser("My Default Auto");
 
-    return autoCommandChooser.getSelected();
-    //return null;
+    return autoDriveForward;
+//    return autoCommandChooser.getSelected();
+    //return Commands.none();
 
 //    return Autos.exampleAuto(exampleSubsystem);
     // The selected command will be run in autonomous

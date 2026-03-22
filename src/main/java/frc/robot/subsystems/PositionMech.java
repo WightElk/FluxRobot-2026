@@ -158,7 +158,7 @@ public class PositionMech extends SubsystemBase {
 
     public void resetEncoders()
     {
-        System.out.println("resetEncoders");
+        //System.out.println("resetEncoders");
         motor.setPosition(Rotations.of(0.0));
     }
 
@@ -168,7 +168,7 @@ public class PositionMech extends SubsystemBase {
         {
             double pos = targetPosition;
             motor.setControl(positionVoltage.withPosition(pos));
-            System.out.println(name + " Periodic");
+            //System.out.println(name + " Periodic");
         }
 
         double pos = getPosition();
@@ -183,7 +183,7 @@ public class PositionMech extends SubsystemBase {
     }
 
     public void init(double rpm) {
-        System.out.println(name + " Initializing");
+        //System.out.println(name + " Initializing");
         getParams();
 
         execCounter = 0;
@@ -203,7 +203,7 @@ public class PositionMech extends SubsystemBase {
 
     public void reset()
     {
-        System.out.println(name + " Reset");
+        //System.out.println(name + " Reset");
 
         execCounter = 0;
         time = 0;
@@ -225,7 +225,7 @@ public class PositionMech extends SubsystemBase {
     public void jogDown(double step)
     {
         double pos = getPosition();
-        System.out.println("jogDown " + pos + " / " + step);
+        //System.out.println("jogDown " + pos + " / " + step);
         pos -= step;
         targetPosition = pos;
         
@@ -240,7 +240,7 @@ public class PositionMech extends SubsystemBase {
         {
             position = targetPosition;
             motor.setControl(positionVoltage.withPosition(- position));
-            System.out.println("setControl");
+            //System.out.println("setControl");
         }
 //        .withFeedForward(feedforward))
         // double v = motor.getVelocity().getValue().magnitude();

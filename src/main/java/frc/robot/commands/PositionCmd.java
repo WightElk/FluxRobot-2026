@@ -37,8 +37,8 @@ public class PositionCmd extends Command
     @Override
     public void end(boolean interrupted)
     {
-        if (interrupted)
-            positionMech.stop();
+        //if (interrupted)
+        positionMech.stop();
     }
   
     @Override

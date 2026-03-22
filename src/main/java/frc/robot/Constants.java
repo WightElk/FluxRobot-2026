@@ -48,7 +48,7 @@ public final class Constants {
   public static int TimePeriodMsec = 20;  // in seconds
   public static double TimePeriod = 0.001 * TimePeriodMsec;  // in milliseconds
 
-  public static final double MaxSpeedCoef = 0.8;
+  public static final double MaxSpeedCoef = 1.0;
   public static final double MaxMotorRPM = 6000.0;  //6380
   public static final double MaxMotorRPS = 0.5 * MaxMotorRPM / 60.0;
 
@@ -69,8 +69,8 @@ public final class Constants {
     }
 
   public static final class DriveConstants {
-    public static final double AutoModeSpeed = 0.8;  // Move backward to driver station
-    public static final double AutoModeDriveTime = 2.0;  // In seconds
+    public static final double AutoModeSpeed = 2.0;  // Move backward to driver station
+    public static final double AutoModeDriveTime = 5.0;  // In seconds
     public static final double AutoModeDriveTime_Max = 10.0;  // In seconds
 
     public static final double Holo_X_kP = 0.5;
@@ -113,8 +113,8 @@ public final class Constants {
 
     public static final double MaxMotorRPS = 0.5 * MaxMotorRPM / 60.0;
 
-    public static final double Speed = 45;
-    public static final double FeederSpeed = 40;  // Backward
+    public static final double Speed = 55;
+    public static final double FeederSpeed = 50;  // Backward
 
     public static final double BackwardSpeed = -3000;//-1.5;//ROLLER_ALGAE_OUT
     public static final int ROLLER_MOTOR_CURRENT_LIMIT = 60;
