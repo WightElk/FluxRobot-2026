@@ -49,7 +49,7 @@ public final class Constants {
   public static int TimePeriodMsec = 20;  // in seconds
   public static double TimePeriod = 0.001 * TimePeriodMsec;  // in milliseconds
 
-  public static final double MaxSpeedCoef = 0.8;
+  public static final double MaxSpeedCoef = 0.5;
   public static final double MaxMotorRPM = 6000.0;  //6380
   public static final double MaxMotorRPS = 0.5 * MaxMotorRPM / 60.0;
 
@@ -383,7 +383,7 @@ public final class Constants {
     };
 
     public static final String[] InitNames = {
-      //"Test",
+      "Test - Blue",
       "Blue Left",
       "Blue Center",
       "Blue Right",
@@ -398,7 +398,7 @@ public final class Constants {
     public static final double redStartX = Units.inchesToMeters(651.22 - 182.11 + 47.0 / 2.0 + Constants.Robot.Length / 2.0);
 
     public static final Translation2d[] InitPositions = {
-      //new Translation2d(1.0, 4.056),
+      new Translation2d(Units.inchesToMeters(147.47), Units.inchesToMeters(24 + 3.5 + 27/2.0)),
       //Blue
       //292.718
       new Translation2d(blueStartX, Units.inchesToMeters(317.688 - 24.97)),
@@ -410,7 +410,7 @@ public final class Constants {
       new Translation2d(redStartX, Units.inchesToMeters(317.688 - 24.97))
     };
     public static final Rotation2d[] InitRotations = {
-      //Rotation2d.kZero,
+      Rotation2d.kZero,
       //Blue
       Rotation2d.kZero,
       Rotation2d.kZero,

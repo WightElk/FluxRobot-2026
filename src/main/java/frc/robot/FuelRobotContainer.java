@@ -80,7 +80,7 @@ public class FuelRobotContainer extends RobotContainer {
 
     int connectedJoystickCount = connectedJoystickCount();
     useTwoControllers = releaseVersion ? true : (connectedJoystickCount == 2);
-//    System.out.println("connectedJoystickCount " + connectedJoystickCount);
+    SmartDashboard.putNumber("Joysticks", connectedJoystickCount);
 
     intake = new VelocityMech(canBus, "Intake", IntakeConstants.MotorId);
     tilter = new PositionMech(canBus, "Tilter", IntakeConstants.TiltMotorId);
@@ -118,7 +118,7 @@ public class FuelRobotContainer extends RobotContainer {
 
     CommandXboxController controller = useTwoControllers ? operatorController : driverController;
 
-    if (useTwoControllers)
+    if (false && useTwoControllers)
     {
       // X - Keep robot in place
       driverController.x().whileTrue(drivetrain.applyRequest(() -> brake));
@@ -207,29 +207,41 @@ public class FuelRobotContainer extends RobotContainer {
       // Intake control
       // Right Trigger - Run intake rolller
       controller.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(new VelocityCmd(intake, () -> IntakeConstants.InSpeed, Constants.Forward));
+      //controller.rightBumper().whileTrue(new VelocityCmd(intake, () -> IntakeConstants.OutSpeed, Constants.Backward));
+      //controller.rightBumper().whileTrue(Commands.runOnce(drivetrain::seedFieldCentric, drivetrain));
 
       // Intake Tilt control
       // Pov Left - Push out intake
       // Pov Down - Pull in intake
+      if (false)
+      {
       controller.povLeft().and(controller.leftBumper().negate()).whileTrue(new RunCommand(() -> tilter.jogDown(IntakeConstants.TiltStep), tilter));
       controller.povRight().and(controller.leftBumper().negate()).whileTrue(new RunCommand(() -> tilter.jogUp(IntakeConstants.TiltStep), tilter));
 
       // controller.povRight().and(controller.leftBumper()).whileTrue(Commands.runOnce(() -> shooter.speedUp(ShooterConstants.SpeedStep), shooter));
       // controller.povLeft().and(controller.leftBumper()).whileTrue(Commands.runOnce(() -> shooter.speedDown(ShooterConstants.SpeedStep), shooter));
-
-      if (false)
+      }
+      else
       {
         controller.povRight().whileTrue(Commands.runOnce(() -> shooter.speedUp(ShooterConstants.SpeedStep), shooter));
         controller.povLeft().whileTrue(Commands.runOnce(() -> shooter.speedDown(ShooterConstants.SpeedStep), shooter));
       }
       // Feeder control
       // Left Trigger - Run Feeder and Shoot
+      if (false)
+      {
       controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(new VelocityCmd(feeder, () -> IndexerConstants.FeederSpeed, Constants.Backward));
 
       // Indexer control
       // Left Bumper - Run Indexer
       controller.leftBumper().and(controller.x().negate()).whileTrue(new VelocityCmd(indexer, () -> IndexerConstants.Speed, Constants.Forward));
-
+      }
+      else
+      {
+      controller.leftTrigger(OperatorConstants.TriggerThreshold).whileTrue(Commands.parallel(
+          new VelocityCmd(feeder, () -> IndexerConstants.FeederSpeed, Constants.Backward),
+          new VelocityCmd(indexer, () -> IndexerConstants.Speed, Constants.Forward)));
+      }
       // Shooter control
       // A - Shooter ON
       // B - Shooter OFF
@@ -255,11 +267,12 @@ public class FuelRobotContainer extends RobotContainer {
 //      controller.rightBumper().whileTrue(new RangeShootCmd(shooter, hood, feeder, rangeTable, drivetrain::getPose));
 
       controller.rightBumper().whileTrue(drivetrain.followPathCommand(pathChooser.getSelected()));
+      controller.leftBumper().whileTrue(drivetrain.followPathCommand(pathChooser.getSelected()));
 
       // Fetch parameters
       controller.back().and(controller.x().negate()).toggleOnTrue(Commands.runOnce(() -> fetchParameters()));
       // Update parameters
-      controller.back().and(controller.leftBumper()).toggleOnTrue(Commands.runOnce(() -> storeParameters()));
+      controller.back().toggleOnTrue(Commands.runOnce(() -> storeParameters()));
     }
   }
 

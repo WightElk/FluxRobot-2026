@@ -598,7 +598,14 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 path,
                 this::getPose,
                 this::getChassisSpeeds,
-                (speeds, feedforwards) -> setChassisSpeeds(speeds),
+//                (speeds, feedforwards) -> setChassisSpeeds(speeds),
+            (speeds, feedforwards) -> {
+                System.out.println("Speeds " + speeds);
+                setControl(
+                pathApplyRobotSpeeds.withSpeeds(ChassisSpeeds.discretize(speeds, 0.020))
+                    .withWheelForceFeedforwardsX(feedforwards.robotRelativeForcesXNewtons())
+                    .withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons())
+            );},
                 new PPHolonomicDriveController(translationPid, rotationPid),
                 robotConfig,
                 () -> { return alliance == Alliance.Red; },
