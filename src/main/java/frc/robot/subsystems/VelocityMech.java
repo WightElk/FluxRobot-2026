@@ -120,7 +120,11 @@ public class VelocityMech extends SubsystemBase {
 
     public void setTargetSpeed(double speed)
     {
-        targetVelocity = speed;
+        if (targetVelocity != speed)
+        {
+            targetVelocity = speed;
+            targetVelocityChanged = true;
+        }
     }
 
     public boolean atTarget(double speed)
@@ -320,11 +324,7 @@ public class VelocityMech extends SubsystemBase {
 
         double vel = SmartDashboard.getNumber(prefix + "Set RPM", DefaultVelocityRPM);
         vel = validateVelocity(vel);
-        if (vel != targetVelocity)
-        {
-            targetVelocity = vel;
-            targetVelocityChanged = true;
-        }
+        setTargetSpeed(vel);
 
         pidCtrl.pid(kP, kD, kI);
 //        System.out.println("getParams: " + name);

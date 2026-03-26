@@ -21,7 +21,6 @@ public class IntakeCommand extends Command {
    */
   public IntakeCommand(VelocityMech intake, double speed) {
     this.intake = intake;
-    intake.setTargetSpeed(speed);
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(intake);
   }

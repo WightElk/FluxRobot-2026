@@ -25,7 +25,6 @@ public class FeederCommand extends Command {
   public FeederCommand(VelocityMech feeder, double speed, int dir) {
     this.feeder = feeder;
     direction = dir;
-    feeder.setTargetSpeed(speed);
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(feeder);
   }

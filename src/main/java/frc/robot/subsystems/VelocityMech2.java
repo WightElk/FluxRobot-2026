@@ -125,7 +125,11 @@ public class VelocityMech2 extends SubsystemBase {
 
     public void setTargetSpeed(double speed)
     {
-        targetVelocity = speed;
+        if (targetVelocity != speed)
+        {
+            targetVelocity = speed;
+            targetVelocityChanged = true;
+        }
     }
 
     public boolean atTarget() {
@@ -141,17 +145,17 @@ public class VelocityMech2 extends SubsystemBase {
     public void periodic() {
         if (running && targetVelocityChanged)
         {
-            velocityRPM = direction == Constants.Backward ? -targetVelocity : targetVelocity;
-            motor1.setControl(velocityVoltage.withVelocity(velocityRPM));
-            motor2.setControl(velocityVoltage.withVelocity(-velocityRPM));
-            System.out.println(name + " setControl-periodic " + velocityRPM);
+            double vel = direction == Constants.Backward ? -targetVelocity : targetVelocity;
+            motor1.setControl(velocityVoltage.withVelocity(vel));
+            motor2.setControl(velocityVoltage.withVelocity(-vel));
+            //System.out.println(name + " setControl-periodic " + velocityRPM);
         }
 
         double vel = 60 * getVelocity();
         if (vel != velocity)
         {
             String prefix = name + "/";
-            SmartDashboard.putNumber(prefix + "RPM 1", vel);
+            SmartDashboard.putNumber(prefix + "RPM_1", vel);
 //            System.out.println("RPM: " + velocity + " / " + vel + " / " + velocityRPM);
             velocity = vel;
         }
@@ -159,7 +163,7 @@ public class VelocityMech2 extends SubsystemBase {
         if (vel != velocity2)
         {
             String prefix = name + "/";
-            SmartDashboard.putNumber(prefix + "RPM 2", vel);
+            SmartDashboard.putNumber(prefix + "RPM_2", vel);
  //          System.out.println("RPM: " + velocity + " / " + vel + " / " + velocityRPM);
             velocity2 = vel;
         }
@@ -338,8 +342,8 @@ public class VelocityMech2 extends SubsystemBase {
         String prefix = name + "/";
 
         SmartDashboard.putNumber(prefix + "Set RPM", targetVelocity);
-        SmartDashboard.putNumber(prefix + "RPM 1", velocity);
-        SmartDashboard.putNumber(prefix + "RPM 2", velocity2);
+        SmartDashboard.putNumber(prefix + "RPM_1", 60 * velocity);
+        SmartDashboard.putNumber(prefix + "RPM_2", 60 * velocity2);
 
         SmartDashboard.putNumber(prefix + "kP", kP);
         SmartDashboard.putNumber(prefix + "kD", kD);
@@ -386,11 +390,7 @@ public class VelocityMech2 extends SubsystemBase {
 
         double vel = SmartDashboard.getNumber(prefix + "Set RPM", DefaultVelocityRPM);
         vel = validateVelocity(vel);
-        if (vel != targetVelocity)
-        {
-            targetVelocity = vel;
-            targetVelocityChanged = true;
-        }
+        setTargetSpeed(vel);
 
         pidCtrl.pid(kP, kD, kI);
 //        System.out.println("getParams: " + name);
