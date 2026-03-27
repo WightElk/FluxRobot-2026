@@ -24,6 +24,14 @@ public class RangeTable
 
     private Range[] ranges =
     {
+        new Range(Units.inchesToMeters(47.75 / 2 + Constants.Robot.Length / 2 - 1 + 8), 2000.0 / 60.0, 0), // 0
+        new Range(Units.inchesToMeters(47.75 / 2 + Constants.Robot.Length / 2 - 1 + 36), 2000.0 / 60.0, 2.8), // 7/16
+        new Range(Units.inchesToMeters(47.75 / 2 + Constants.Robot.Length / 2 - 1 + 72), 2200.0 / 60.0, 3.9), // 1.25
+        new Range(Units.inchesToMeters(47.75 / 2 + Constants.Robot.Length / 2 - 1 + 108), 2300.0 / 60.0, 6.7), // 1.25
+        new Range(Units.inchesToMeters(1.4142 * 47.75 / 2 + Constants.Robot.Length / 2 - 1 + 134), 2400.0 / 60.0, 8.85) // 1.5
+    };
+    private Range[] ranges1 =
+    {
         new Range(Units.inchesToMeters(47.75 / 2 + Constants.Robot.Length / 2 + 8), 2200.0 / 60.0, hoodCoef * 0), // 0
         new Range(Units.inchesToMeters(47.75 / 2 + Constants.Robot.Length / 2 + 60), 2600.0 / 60.0, hoodCoef * 7.0 / 16.0), // 7/16
         new Range(Units.inchesToMeters(47.75 / 2 + Constants.Robot.Length / 2 + 120), 2600.0 / 60.0, hoodCoef * 1.25), // 1.25

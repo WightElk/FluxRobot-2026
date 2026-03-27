@@ -11,7 +11,10 @@ import frc.robot.subsystems.VelocityMech2;
 import java.lang.constant.Constable;
 import java.util.function.Supplier;
 
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -24,7 +27,7 @@ public class RangeShootCmd extends Command {
   private final VelocityMech indexer;
   private final RangeTable rangeTable;
   private final Supplier<Pose2d> poseProvider;
-  private Translation2d blueHubPos = new Translation2d(Units.inchesToMeters(82.11), Units.inchesToMeters(158.84));
+  private Translation2d blueHubPos = new Translation2d(Units.inchesToMeters(182.11), Units.inchesToMeters(158.84));
   private Translation2d redHubPos = new Translation2d(Units.inchesToMeters(651.22 - 182.11), Units.inchesToMeters(158.84));
   private Pose2d currentPose;
   private boolean running = false;
@@ -47,6 +50,12 @@ public class RangeShootCmd extends Command {
     //shooter.setTargetSpeed(speed);
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(shooter, hood, feeder, indexer);
+
+      Logger.recordOutput("RangeShoot/Pose", currentPose);
+      Logger.recordOutput("RangeShoot/Pose", currentPose);
+      Logger.recordOutput("RangeShoot/Distance", 0);
+      Logger.recordOutput("RangeShoot/RPM", 0);
+      Logger.recordOutput("RangeShoot/Hood", 0);
   }
 
   // Called when the command is initially scheduled.
@@ -62,7 +71,7 @@ public class RangeShootCmd extends Command {
       Pose2d pose = poseProvider.get();
       Translation2d pos = pose.getTranslation();
       double delta = pos.getDistance(currentPose.getTranslation());
-      if (delta >= positionTolerance)
+      //if (delta >= positionTolerance)
       {
         Translation2d hubPos = Robot.isBlueSide() ? blueHubPos : redHubPos;
         double distance = pos.getDistance(hubPos);
@@ -70,22 +79,27 @@ public class RangeShootCmd extends Command {
         RangeTable.Range range = rangeTable.getRange(distance);
         double speed = range.speed;
         double hoodPos = range.elevation;
+        Logger.recordOutput("RangeShoot/Pose", pose);
+        Logger.recordOutput("RangeShoot/Pose", new Pose2d(hubPos, Rotation2d.kZero));
+        Logger.recordOutput("RangeShoot/Distance", distance);
+        Logger.recordOutput("RangeShoot/RPM", speed);
+        Logger.recordOutput("RangeShoot/Hood", hoodPos);
 
-        shooter.setSpeed(speed);
-        hood.run(hoodPos);
+        // shooter.setSpeed(speed);
+        // hood.run(hoodPos);
 
         currentPose = pose;
         poseChanged = true;
       }
 
-      if (shooter.atTarget() && poseChanged)
+      if (shooter.atTarget())// && poseChanged)
       {
         running = true;
         poseChanged = false;
-        indexer.setTargetSpeed(-IndexerConstants.Speed);
-        indexer.setSpeed(-IndexerConstants.Speed);
-        feeder.setTargetSpeed(-IndexerConstants.FeederSpeed);
-        feeder.setSpeed(-IndexerConstants.FeederSpeed);
+        // indexer.setTargetSpeed(-IndexerConstants.Speed);
+        // indexer.setSpeed(-IndexerConstants.Speed);
+        // feeder.setTargetSpeed(-IndexerConstants.FeederSpeed);
+        // feeder.setSpeed(-IndexerConstants.FeederSpeed);
       }
   }
 

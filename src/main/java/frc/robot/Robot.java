@@ -46,7 +46,7 @@ public class Robot extends LoggedRobot {
     initLogger();
 
     releaseVersion = !comments.contains("dev");
-    visionEnabled = comments.contains("vision");
+    visionEnabled = false && comments.contains("vision");
 
     SmartDashboard.putString("Robot", comments);
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our

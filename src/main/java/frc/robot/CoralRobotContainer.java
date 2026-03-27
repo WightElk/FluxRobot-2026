@@ -43,7 +43,7 @@ public class CoralRobotContainer extends RobotContainer {
     //public final DriveToPoseCommand autoDriveCommand;
 
   public CoralRobotContainer() {
-    super(RobotConfig.CoralRobot, true);
+    super(RobotConfig.CoralRobot, true, new Pose2d());
 
     Supplier<Pose2d> goalPoseSupplier = () -> new Pose2d(Units.feetToMeters(5), Units.feetToMeters(3), Rotation2d.fromDegrees(90));
     Supplier<Pose2d> poseProvider = drivetrain::getPose;

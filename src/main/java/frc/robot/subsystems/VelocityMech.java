@@ -47,7 +47,7 @@ public class VelocityMech extends SubsystemBase {
     private boolean running = false;
     private boolean targetVelocityChanged = false;
     private double velocityRPM = 0;
-    private double targetVelocity = DefaultVelocityRPM;
+    private double targetVelocity = DefaultVelocityRPS;
 //    @AutoLogOutput(key = "{name}/Velocity")
     private double velocity = 0;
 
@@ -57,7 +57,7 @@ public class VelocityMech extends SubsystemBase {
 
     private double timeDelta = Constants.TimePeriod;
 
-    public static final double DefaultVelocityRPM = 100.0;
+    public static final double DefaultVelocityRPS = 50.0;
     public static final double MaxMotorRPM = 6000;
 
         // configs.Slot0.kS = kS;//0.01; 
@@ -141,9 +141,9 @@ public class VelocityMech extends SubsystemBase {
     public void periodic() {
         if (running && targetVelocityChanged)
         {
-            velocityRPM = direction == Constants.Backward ? -targetVelocity : targetVelocity;
-            motor.setControl(velocityVoltage.withVelocity(velocityRPM));
-            System.out.println("setControl-periodic " + velocityRPM);
+            double vel = direction == Constants.Backward ? -targetVelocity : targetVelocity;
+            motor.setControl(velocityVoltage.withVelocity(vel));
+            System.out.println("setControl-periodic " + vel);
         }
 
         double vel = 60 * getVelocity();
@@ -199,17 +199,18 @@ public class VelocityMech extends SubsystemBase {
     }
 
     public void run(int direction) {
+        if (running)
+            return;
+
         this.direction = direction;
-        // speed = -speed;
-        // double rps = speed  * Constants.ShooterConstants.MaxMotorRPS;
         double setRpm = direction == Constants.Backward ? -targetVelocity : targetVelocity;
-        if (setRpm != velocityRPM)
+        //if (setRpm != velocityRPM)
         {
-            velocityRPM = setRpm;
-            motor.setControl(velocityVoltage.withVelocity(velocityRPM / 60.0));
+            //velocityRPM = setRpm;
+            motor.setControl(velocityVoltage.withVelocity(setRpm));
+//        .withFeedForward(feedforward))
 //            System.out.println("setControl");
         }
-//        .withFeedForward(feedforward))
         running = true;
         // double v = motor.getVelocity().getValue().magnitude();
         // System.out.println("Run: " + v + " / " + velocityRPM);
@@ -276,7 +277,7 @@ public class VelocityMech extends SubsystemBase {
     public void putParams() {
         String prefix = name + "/";
 
-        SmartDashboard.putNumber(prefix + "Set RPM", targetVelocity);
+        SmartDashboard.putNumber(prefix + "Set RPM", 60.0 * targetVelocity);
         SmartDashboard.putNumber(prefix + "RPM", velocity);
 
         SmartDashboard.putNumber(prefix + "kP", kP);
@@ -322,7 +323,8 @@ public class VelocityMech extends SubsystemBase {
 
         setConfig();
 
-        double vel = SmartDashboard.getNumber(prefix + "Set RPM", DefaultVelocityRPM);
+        double vel = SmartDashboard.getNumber(prefix + "Set RPM", DefaultVelocityRPS);
+        vel /= 60.0;
         vel = validateVelocity(vel);
         setTargetSpeed(vel);
 

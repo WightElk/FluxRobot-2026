@@ -115,7 +115,7 @@ public class RobotContainer {
 // /  public final CANBus kCANBus;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
-  public RobotContainer(RobotConfig config, boolean visionEnabled)
+  public RobotContainer(RobotConfig config, boolean visionEnabled, Pose2d initPose)
   {
     this.visionEnabled = visionEnabled;
 
@@ -125,7 +125,7 @@ public class RobotContainer {
       .withPigeon2Id(config.pigeonId)
       .withPigeon2Configs(config.pigeonConfigs);
 
-    drivetrain = createDrivetrain(config);
+    drivetrain = createDrivetrain(config, initPose);
     drivetrain.registerTelemetry(logger::telemeterize);
 
     // /edu/wpi/first/apriltag/2025-reefscape-andymark.json
@@ -282,7 +282,7 @@ public class RobotContainer {
     // driverController.start().and(driverController.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
     // // reset the field-centric heading on left bumper press
-    driverController.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
+//    driverController.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 //    driverController.back().and(driverController.rightBumper()).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
   
     // Vision control bindings (driver controller only)
@@ -321,10 +321,11 @@ public class RobotContainer {
 
   // Creates a CommandSwerveDrivetrain instance.
   // This should only be called once in your robot program,.
-  private CommandSwerveDrivetrain createDrivetrain(RobotConfig config)
+  private CommandSwerveDrivetrain createDrivetrain(RobotConfig config, Pose2d initPose)
   {
     return new CommandSwerveDrivetrain(
         config, DrivetrainConstants,
+        initPose,
         createModuleConstants(config.frontLeft),
         createModuleConstants(config.frontRight),
         createModuleConstants(config.backLeft),
@@ -340,13 +341,14 @@ public class RobotContainer {
     return vision;
   }
 
-    public void resetPose() {
+    public void resetPose(Pose2d pose) {
         // Example Only - startPose should be derived from some assumption
         // of where your robot was placed on the field.
         // The first pose in an autonomous path is often a good choice.
         var startPose = new Pose2d(1, 1, new Rotation2d());
         // drivetrain.resetPose(startPose, true);
         // vision.resetSimPose(startPose);
+        drivetrain.setInitPose(pose);
     }
 }
 

@@ -14,6 +14,7 @@ import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.PositionVoltage;
@@ -53,6 +54,8 @@ public class PositionMech extends SubsystemBase {
     private final PositionVoltage positionVoltage = new PositionVoltage(0).withSlot(0);
     /* Start at velocity 0, use slot 1 */
     private final PositionTorqueCurrentFOC positionTorque = new PositionTorqueCurrentFOC(0).withSlot(1);
+
+    private final MotionMagicVoltage mmReq = new MotionMagicVoltage(0);
     /* Keep a neutral out so we can disable the motor */
     private final NeutralOut brake = new NeutralOut();
 
@@ -118,15 +121,6 @@ public class PositionMech extends SubsystemBase {
         motor = new TalonFX(motorId, canBus);
 
         config = new TalonFXConfiguration();
-        FeedbackConfigs feedback = config.Feedback;
-        // feedback.RotorToSensorRatio = 1.0;
-        // feedback.SensorToMechanismRatio = 1.0;
-
-        // MotionMagicConfigs mm = configs.MotionMagic;
-        // mm.withMotionMagicCruiseVelocity(RotationsPerSecond.of(5))
-        //     .withMotionMagicAcceleration(RotationsPerSecondPerSecond.of(10))
-        //     .withMotionMagicJerk(RotationsPerSecondPerSecond.per(Second).of(100));
-
         setConfig();
 
         pidController = new PIDController(kP, kI, kD);
@@ -256,6 +250,20 @@ public class PositionMech extends SubsystemBase {
 //        .withFeedForward(feedforward))
     }
 
+
+    public void run1(double pos) {
+        running = true;
+//        pos = -pos;
+        double rps = pos  * Constants.ShooterConstants.MaxMotorRPS;
+
+        motor.setControl(mmReq.withPosition(pos).withSlot(0));
+
+        //motor.setPosition(Rotations.of(1));
+
+//        motor.setControl(positionVoltage.withPosition(pos));
+//        .withFeedForward(feedforward))
+    }
+
     public void stop() {
         motor.setControl(brake);
         running = false;
@@ -273,6 +281,16 @@ public class PositionMech extends SubsystemBase {
         // Peak output of 8 volts
         config.Voltage.withPeakForwardVoltage(Volts.of(Constants.PositionPeakVoltage)).withPeakReverseVoltage(Volts.of(-Constants.PositionPeakVoltage));
         config.withCurrentLimits(new CurrentLimitsConfigs().withSupplyCurrentLimit(Amps.of(Constants.PositionCurrentLimit)).withSupplyCurrentLimitEnable(true));
+
+        FeedbackConfigs feedback = config.Feedback;
+        // feedback.RotorToSensorRatio = 1.0;
+//        feedback.SensorToMechanismRatio = 40.0;
+
+        // MotionMagicConfigs mm = config.MotionMagic;
+        // mm.withMotionMagicCruiseVelocity(RotationsPerSecond.of(0.1))
+        //     .withMotionMagicAcceleration(RotationsPerSecondPerSecond.of(0.2))
+        //     .withMotionMagicJerk(RotationsPerSecondPerSecond.per(Second).of(1));
+
 
         /* Torque-based velocity does not require a velocity feed forward, as torque will accelerate the rotor up to the desired velocity by itself */
         // configs.Slot1.kS = 2.5; // To account for friction, add 2.5 A of static feedforward

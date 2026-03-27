@@ -18,6 +18,7 @@ public class VelocityCmd extends Command
         this.speed = speed;
         this.direction = direction;
 
+        velocityMech.setTargetSpeed(speed.getAsDouble());
         addRequirements(velocityMech);
     }
 
@@ -28,16 +29,16 @@ public class VelocityCmd extends Command
         double v = speed.getAsDouble();
         if (direction != Constants.Forward)
             v = -v;
-        velocityMech.setTargetSpeed(v);
+        velocityMech.run(direction);
     }
   
     @Override
     public void execute()
     {
-        double v = speed.getAsDouble();
-        if (direction != Constants.Forward)
-            v = -v;
-        velocityMech.setSpeed(v);
+        // double v = speed.getAsDouble();
+        // if (direction != Constants.Forward)
+        //     v = -v;
+        // velocityMech.setSpeed(v);
     }
   
     @Override

@@ -28,7 +28,9 @@ public class TiltIntakeCmd extends Command {
   @Override
   public void initialize() {
     intake.reset();
-    intake.run(direction == Constants.Forward ? IntakeConstants.OutTiltPosition : IntakeConstants.InTiltPosition);
+    //intake.run(direction == Constants.Forward ? IntakeConstants.OutTiltPosition : IntakeConstants.InTiltPosition);
+  
+    intake.run1(-10);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -39,7 +41,7 @@ public class TiltIntakeCmd extends Command {
   // Called once the command ends or is interrupted. This ensures the roller is not running when not intented.
   @Override
   public void end(boolean interrupted) {
-    if (interrupted)
+    //if (interrupted)
       intake.stop();
   }
 

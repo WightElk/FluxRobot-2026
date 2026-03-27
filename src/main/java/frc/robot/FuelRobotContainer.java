@@ -75,12 +75,15 @@ public class FuelRobotContainer extends RobotContainer {
     public boolean releaseVersion = true;
 
   public FuelRobotContainer(boolean visionEnabled, boolean releaseVersion) {
-    super(RobotConfig.FuelRobot, visionEnabled);
+    super(RobotConfig.FuelRobot, visionEnabled, new Pose2d(Constants.Paths.InitPositions[0], Constants.Paths.InitRotations[0]));
     this.releaseVersion = releaseVersion;
 
     int connectedJoystickCount = connectedJoystickCount();
     useTwoControllers = releaseVersion ? true : (connectedJoystickCount == 2);
     SmartDashboard.putNumber("Joysticks", connectedJoystickCount);
+
+    initPosition();
+    resetPose(initPoseChooser.getSelected());
 
     intake = new VelocityMech(canBus, "Intake", IntakeConstants.MotorId);
     tilter = new PositionMech(canBus, "Tilter", IntakeConstants.TiltMotorId);
@@ -96,7 +99,6 @@ public class FuelRobotContainer extends RobotContainer {
 
     //autoDriveCommand = new DriveToPoseCommand(drivetrain, goalPoseSupplier, poseProvider, true);
       // Build an auto chooser. This will use Commands.none() as the default option.
-    initPosition();
     initPaths();
     initAutoCommands();
 
@@ -118,7 +120,7 @@ public class FuelRobotContainer extends RobotContainer {
 
     CommandXboxController controller = useTwoControllers ? operatorController : driverController;
 
-    if (false && useTwoControllers)
+    if (useTwoControllers)
     {
       // X - Keep robot in place
       driverController.x().whileTrue(drivetrain.applyRequest(() -> brake));
@@ -189,8 +191,8 @@ public class FuelRobotContainer extends RobotContainer {
       // Indexer control
       // POV Right - Indexer rollers IN
       // POV Left  - Indexer rollers OUT
-      //controller.povRight().and(controller.leftBumper()).whileTrue(Commands.runOnce(() -> shooter.speedUp(ShooterConstants.SpeedStep), shooter));
-      //controller.povLeft().and(controller.leftBumper()).whileTrue(Commands.runOnce(() -> shooter.speedDown(ShooterConstants.SpeedStep), shooter));
+      controller.povRight().and(controller.leftBumper()).whileTrue(Commands.runOnce(() -> shooter.speedUp(ShooterConstants.SpeedStep), shooter));
+      controller.povLeft().and(controller.leftBumper()).whileTrue(Commands.runOnce(() -> shooter.speedDown(ShooterConstants.SpeedStep), shooter));
 
       // Shooter Hood
       // Pov Up - Hood Up
@@ -213,13 +215,13 @@ public class FuelRobotContainer extends RobotContainer {
       // Intake Tilt control
       // Pov Left - Push out intake
       // Pov Down - Pull in intake
-      if (false)
+      if (true)
       {
       controller.povLeft().and(controller.leftBumper().negate()).whileTrue(new RunCommand(() -> tilter.jogDown(IntakeConstants.TiltStep), tilter));
       controller.povRight().and(controller.leftBumper().negate()).whileTrue(new RunCommand(() -> tilter.jogUp(IntakeConstants.TiltStep), tilter));
 
-      // controller.povRight().and(controller.leftBumper()).whileTrue(Commands.runOnce(() -> shooter.speedUp(ShooterConstants.SpeedStep), shooter));
-      // controller.povLeft().and(controller.leftBumper()).whileTrue(Commands.runOnce(() -> shooter.speedDown(ShooterConstants.SpeedStep), shooter));
+      controller.povRight().and(controller.leftBumper()).whileTrue(Commands.runOnce(() -> shooter.speedUp(ShooterConstants.SpeedStep), shooter));
+      controller.povLeft().and(controller.leftBumper()).whileTrue(Commands.runOnce(() -> shooter.speedDown(ShooterConstants.SpeedStep), shooter));
       }
       else
       {
@@ -254,9 +256,9 @@ public class FuelRobotContainer extends RobotContainer {
       // A - Short Range Shooter
       // B - Mid Shooter
       // Y - Long Shooter
-      controller.a().onTrue(new SetShooterRangeCmd(shooter, hood, rangeTable, ShooterConstants.ShortRange));
-      controller.b().onTrue(new SetShooterRangeCmd(shooter, hood, rangeTable, ShooterConstants.MidRange));
-      controller.y().onTrue(new SetShooterRangeCmd(shooter, hood, rangeTable, ShooterConstants.LongRange));
+      // controller.a().onTrue(new SetShooterRangeCmd(shooter, hood, rangeTable, ShooterConstants.ShortRange));
+      // controller.b().onTrue(new SetShooterRangeCmd(shooter, hood, rangeTable, ShooterConstants.MidRange));
+      // controller.y().onTrue(new SetShooterRangeCmd(shooter, hood, rangeTable, ShooterConstants.LongRange));
 
       // Shooter Hood
       // Pov Up - Hood Up
@@ -264,10 +266,11 @@ public class FuelRobotContainer extends RobotContainer {
       controller.povUp().whileTrue(new RunCommand(() -> hood.jogUp(ShooterConstants.HoodStep), hood));
       controller.povDown().whileTrue(new RunCommand(() -> hood.jogDown(ShooterConstants.HoodStep), hood));
 
-//      controller.rightBumper().whileTrue(new RangeShootCmd(shooter, hood, feeder, rangeTable, drivetrain::getPose));
+      controller.b().whileTrue(new RangeShootCmd(shooter, hood, feeder, indexer, rangeTable, drivetrain::getPose));
 
-      controller.rightBumper().whileTrue(drivetrain.followPathCommand(pathChooser.getSelected()));
-      controller.leftBumper().whileTrue(drivetrain.followPathCommand(pathChooser.getSelected()));
+      controller.rightBumper().whileTrue(new TiltIntakeCmd(tilter, Constants.Backward));
+//      controller.rightBumper().whileTrue(drivetrain.followPathCommand(pathChooser.getSelected()));
+      //controller.leftBumper().whileTrue(drivetrain.followPathCommand(pathChooser.getSelected()));
 
       // Fetch parameters
       controller.back().and(controller.x().negate()).toggleOnTrue(Commands.runOnce(() -> fetchParameters()));
@@ -356,8 +359,8 @@ public class FuelRobotContainer extends RobotContainer {
 
   protected void initAutoCommands()
   {
-        driverController.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(new VelocityCmd(intake, () -> IntakeConstants.InSpeed, Constants.Forward));
-      driverController.rightBumper().whileTrue(new VelocityCmd(intake, () -> IntakeConstants.OutSpeed, Constants.Backward));
+        //driverController.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(new VelocityCmd(intake, () -> IntakeConstants.InSpeed, Constants.Forward));
+      //driverController.rightBumper().whileTrue(new VelocityCmd(intake, () -> IntakeConstants.OutSpeed, Constants.Backward));
       // controller.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue();
 
     Command jogIntakeOut = Commands.sequence(
@@ -384,7 +387,9 @@ public class FuelRobotContainer extends RobotContainer {
 
     autoCommandChooser = AutoBuilder.buildAutoChooser();
 
-    autoCommandChooser.setDefaultOption("No Auto", Commands.none());
+    //autoCommandChooser.setDefaultOption("No Auto", Commands.none());
+    autoCommandChooser.setDefaultOption("Test", new PathPlannerAuto(Constants.AutoConstants.commands[0][1]));
+    
     try
     {
       String leftAutoName = Constants.AutoConstants.commands[0][1];

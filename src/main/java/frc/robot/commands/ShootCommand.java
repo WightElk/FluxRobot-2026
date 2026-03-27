@@ -27,7 +27,12 @@ public class ShootCommand extends Command {
         this.velocityMech = velocityMech;
         this.speed = speed;
         this.direction = direction;    
-      addRequirements(velocityMech);
+
+        double v = speed.getAsDouble();
+        // if (direction != Constants.Forward)
+        //     v = -v;
+        velocityMech.setTargetSpeed(v);
+        addRequirements(velocityMech);
     }
 
     // Called when the command is initially scheduled.
@@ -45,8 +50,10 @@ public class ShootCommand extends Command {
             double v = speed.getAsDouble();
             if (direction != Constants.Forward)
                 v = -v;
-            velocityMech.setTargetSpeed(v);
-            velocityMech.setSpeed(v);
+             //velocityMech.setTargetSpeed(v);
+             //Do Run
+             velocityMech.setSpeed(v);
+            //velocityMech.setSpeed(direction);
         }
     }
 

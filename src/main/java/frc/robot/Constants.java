@@ -363,6 +363,7 @@ public final class Constants {
 
     // Arrays of pairs: { Command name, Path name }
     public static final String[][] commands = {
+      {"Test", "Line1"},
       {"Left", "BlueLeftAuto"},
       {"Right", "BlueLeftAuto"},
       {"Red Left", "BlueLeftAuto"},
@@ -398,7 +399,8 @@ public final class Constants {
     public static final double redStartX = Units.inchesToMeters(651.22 - 182.11 + 47.0 / 2.0 + Constants.Robot.Length / 2.0);
 
     public static final Translation2d[] InitPositions = {
-      new Translation2d(Units.inchesToMeters(147.47), Units.inchesToMeters(24 + 3.5 + 27/2.0)),
+      //x, y: 1.041, 3.476
+      new Translation2d(Units.inchesToMeters(24 + 3.5 + 27/2.0), Units.inchesToMeters(147.47)),
       //Blue
       //292.718
       new Translation2d(blueStartX, Units.inchesToMeters(317.688 - 24.97)),

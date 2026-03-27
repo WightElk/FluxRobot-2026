@@ -7,6 +7,8 @@ import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.Utils;
@@ -37,6 +39,8 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.units.DistanceUnit;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -72,6 +76,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     protected SwerveDrivePoseEstimator poseEstimator;
     protected Pose2d initPose = new Pose2d();
     protected Pose2d currentPose;
+    //StructPublisher<Pose2d> publisher = new NetworkTableInstance.getDefault().getStructTopic("MyPose", Pose2d.struct).publish();
     protected Timer timer = new Timer();
 
     /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
@@ -171,6 +176,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     public CommandSwerveDrivetrain(
         frc.robot.RobotConfig config,
         SwerveDrivetrainConstants drivetrainConstants,
+        Pose2d initPose,
         SwerveModuleConstants<?, ?, ?>... modules)
     {
         super(drivetrainConstants, modules);
@@ -185,6 +191,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             new Translation2d(config.backLeft.xPos, config.backLeft.yPos),
             new Translation2d(config.backRight.xPos, config.backRight.yPos)
         );
+
+        setInitPose(initPose);
 
         if (Utils.isSimulation()) {
             startSimThread();
@@ -359,7 +367,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         currentPose = odometry.update(rotation, getState().ModulePositions);
 
         Pose2d pose = poseEstimator.updateWithTime(Timer.getFPGATimestamp(), rotation, getState().ModulePositions);
-
+        currentPose = pose;
+        Logger.recordOutput("MyPose", pose);
+        //publisher.set(pose);
         //log();
     }
 

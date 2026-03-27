@@ -152,7 +152,7 @@ public class VelocityMech2 extends SubsystemBase {
         }
 
         double vel = 60 * getVelocity();
-        if (vel != velocity)
+        //if (vel != velocity)
         {
             String prefix = name + "/";
             SmartDashboard.putNumber(prefix + "RPM_1", vel);
@@ -160,7 +160,7 @@ public class VelocityMech2 extends SubsystemBase {
             velocity = vel;
         }
         vel = 60 * getVelocity2();
-        if (vel != velocity2)
+        //if (vel != velocity2)
         {
             String prefix = name + "/";
             SmartDashboard.putNumber(prefix + "RPM_2", vel);
