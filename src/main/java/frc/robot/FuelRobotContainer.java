@@ -131,7 +131,8 @@ public class FuelRobotContainer extends RobotContainer {
       // Right Trigger - Run intake rolller IN
       // Right Bumper - Run intake rolller OUT
       driverController.rightTrigger(OperatorConstants.TriggerThreshold).whileTrue(new VelocityCmd(intake, () -> IntakeConstants.InSpeed, Constants.Forward));
-      driverController.rightBumper().whileTrue(new VelocityCmd(intake, () -> IntakeConstants.OutSpeed, Constants.Backward));
+      //driverController.rightBumper().whileTrue(new VelocityCmd(intake, () -> IntakeConstants.OutSpeed, Constants.Backward));
+      driverController.rightBumper().whileTrue(new VelocityCmd(indexer, () -> IndexerConstants.Speed, Constants.Forward));
 
       // Intake Tilt control
       // A - Deploy intake

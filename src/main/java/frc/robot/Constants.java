@@ -98,7 +98,7 @@ public final class Constants {
     public static final double InSpeed = 60;
     public static final double OutSpeed = 60;
 
-    public static final double TiltStep = 1;
+    public static final double TiltStep = 0.25;
     public static final double InTiltPosition = 0;
     public static final double OutTiltPosition = -17;
 
@@ -114,8 +114,8 @@ public final class Constants {
 
     public static final double MaxMotorRPS = 0.5 * MaxMotorRPM / 60.0;
 
-    public static final double Speed = 45;
-    public static final double FeederSpeed = 40;  // Backward
+    public static final double Speed = 60;
+    public static final double FeederSpeed = 60;  // Backward
 
     public static final double BackwardSpeed = -3000;//-1.5;//ROLLER_ALGAE_OUT
     public static final int ROLLER_MOTOR_CURRENT_LIMIT = 60;
